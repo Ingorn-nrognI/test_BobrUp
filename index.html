@@ -40,25 +40,56 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const menu = document.getElementById("menu");
 
-let beaver = { x: 180, y: 500, vy: 0 };
+let beaver = { x: 100, y: 500, vy: 0 };
 let gravity = 0.6;
+let gameOver = false;
 
+let obstacles = [];
+let speed = 5;
+
+// запуск игры
 function startGame() {
     menu.style.display = "none";
     canvas.style.display = "block";
     document.addEventListener("click", jump);
+    spawnObstacle();
     update();
 }
 
+// прыжок
 function jump() {
-    if (beaver.y >= 500) {
-        beaver.vy = -10;
+    if (beaver.y >= 500 && !gameOver) {
+        beaver.vy = -12;
     }
 }
 
+// создание препятствий
+function spawnObstacle() {
+    if (gameOver) return;
+
+    obstacles.push({
+        x: canvas.width,
+        y: 520,
+        w: 40,
+        h: 40
+    });
+
+    setTimeout(spawnObstacle, 1500);
+}
+
+// проверка столкновения
+function collision(a, b) {
+    return a.x < b.x + b.w &&
+           a.x + 40 > b.x &&
+           a.y < b.y + b.h &&
+           a.y + 40 > b.y;
+}
+
+// главный цикл
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // физика бобра
     beaver.vy += gravity;
     beaver.y += beaver.vy;
 
@@ -67,8 +98,36 @@ function update() {
         beaver.vy = 0;
     }
 
+    // рисуем бобра
     ctx.fillStyle = "brown";
     ctx.fillRect(beaver.x, beaver.y, 40, 40);
+
+    // препятствия
+    obstacles.forEach((o, i) => {
+        o.x -= speed;
+
+        ctx.fillStyle = "green";
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+
+        // столкновение
+        if (collision(beaver, o)) {
+            gameOver = true;
+        }
+
+        // удаляем если ушло за экран
+        if (o.x < -40) obstacles.splice(i, 1);
+    });
+
+    // ускорение
+    speed += 0.002;
+
+    // если проиграл
+    if (gameOver) {
+        ctx.fillStyle = "red";
+        ctx.font = "30px Arial";
+        ctx.fillText("Ты проиграл", 100, 250);
+        return;
+    }
 
     requestAnimationFrame(update);
 }
