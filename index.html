@@ -47,10 +47,29 @@ let gameOver = false;
 let obstacles = [];
 let speed = 5;
 
-// запуск игры
+let score = 0;
+let bestScore = localStorage.getItem("bestScore") || 0;
+
+// картинки
+let bg = new Image();
+let beaverImg = new Image();
+let logImg = new Image();
+
+bg.src = "bg.png";
+beaverImg.src = "beaver.png";
+logImg.src = "log.png";
+
+// запуск
 function startGame() {
     menu.style.display = "none";
     canvas.style.display = "block";
+
+    score = 0;
+    speed = 5;
+    gameOver = false;
+    obstacles = [];
+    beaver.y = 500;
+
     document.addEventListener("click", jump);
     spawnObstacle();
     update();
@@ -61,23 +80,28 @@ function jump() {
     if (beaver.y >= 500 && !gameOver) {
         beaver.vy = -12;
     }
+
+    if (gameOver) {
+        location.reload();
+    }
 }
 
-// создание препятствий
+// препятствия
 function spawnObstacle() {
     if (gameOver) return;
 
     obstacles.push({
         x: canvas.width,
         y: 520,
-        w: 40,
-        h: 40
+        w: 50,
+        h: 50,
+        passed: false
     });
 
-    setTimeout(spawnObstacle, 1500);
+    setTimeout(spawnObstacle, 1400);
 }
 
-// проверка столкновения
+// столкновение
 function collision(a, b) {
     return a.x < b.x + b.w &&
            a.x + 40 > b.x &&
@@ -85,11 +109,16 @@ function collision(a, b) {
            a.y + 40 > b.y;
 }
 
-// главный цикл
+// игра
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // физика бобра
+    // фон
+    if (bg.complete) {
+        ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+    }
+
+    // физика
     beaver.vy += gravity;
     beaver.y += beaver.vy;
 
@@ -98,34 +127,61 @@ function update() {
         beaver.vy = 0;
     }
 
-    // рисуем бобра
-    ctx.fillStyle = "brown";
-    ctx.fillRect(beaver.x, beaver.y, 40, 40);
+    // бобёр
+    if (beaverImg.complete) {
+        ctx.drawImage(beaverImg, beaver.x, beaver.y, 50, 50);
+    } else {
+        ctx.fillStyle = "brown";
+        ctx.fillRect(beaver.x, beaver.y, 40, 40);
+    }
 
     // препятствия
     obstacles.forEach((o, i) => {
         o.x -= speed;
 
-        ctx.fillStyle = "green";
-        ctx.fillRect(o.x, o.y, o.w, o.h);
+        // считаем очки
+        if (!o.passed && o.x + o.w < beaver.x) {
+            score++;
+            o.passed = true;
+        }
+
+        // рисуем бревно
+        if (logImg.complete) {
+            ctx.drawImage(logImg, o.x, o.y, o.w, o.h);
+        } else {
+            ctx.fillStyle = "green";
+            ctx.fillRect(o.x, o.y, o.w, o.h);
+        }
 
         // столкновение
         if (collision(beaver, o)) {
             gameOver = true;
+
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem("bestScore", bestScore);
+            }
         }
 
-        // удаляем если ушло за экран
-        if (o.x < -40) obstacles.splice(i, 1);
+        if (o.x < -50) obstacles.splice(i, 1);
     });
 
     // ускорение
     speed += 0.002;
 
-    // если проиграл
+    // текст
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("Счёт: " + score, 10, 30);
+    ctx.fillText("Рекорд: " + bestScore, 10, 60);
+
+    // проигрыш
     if (gameOver) {
         ctx.fillStyle = "red";
         ctx.font = "30px Arial";
         ctx.fillText("Ты проиграл", 100, 250);
+        ctx.font = "16px Arial";
+        ctx.fillText("Нажми чтобы начать заново", 70, 300);
         return;
     }
 
