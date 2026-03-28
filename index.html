@@ -45,11 +45,11 @@ let obstacles = []
 // Создание препятствий
 function spawnObstacle() {
   obstacles.push({
-    x: canvas.width / 2, // ВСЕГДА по центру
+    x: canvas.width / 2,
     z: 1
   });
 }
-
+  
 // ПРЫЖОК (универсально)
 function jump() {
   if (player.grounded) {
@@ -114,8 +114,8 @@ function drawObstacles() {
     let size = 60 * scale;
 
     // позиция X (центр + перспектива)
-    let x = canvas.width / 2 + (o.x - canvas.width / 2) * scale;
-
+    let x = canvas.width / 2 - (60 * scale) / 2;
+    
     // ВОТ ГЛАВНОЕ — теперь сверху вниз
     let y = 100 + (canvas.height - 200) * scale;
 
