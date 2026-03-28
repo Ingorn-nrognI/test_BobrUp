@@ -45,7 +45,7 @@ let obstacles = []
 // Создание препятствий
 function spawnObstacle() {
   obstacles.push({
-    x: Math.random() * 200 + (canvas.width/2 - 100),
+    x: canvas.width / 2, // ВСЕГДА по центру
     z: 1
   });
 }
