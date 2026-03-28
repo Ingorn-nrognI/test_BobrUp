@@ -40,17 +40,36 @@ body {
 
 /* Нижнее меню */
 .bottom-bar {
+  position: fixed;     /* фиксируем внизу */
+  bottom: 0;           /* прижимаем к низу */
+  left: 0;
+  width: 100%;         /* растягиваем на всю ширину */
   display: flex;
-  background: #222;
+  justify-content: center; /* центруем кнопки по горизонтали */
+  background: #222;    /* фон панели */
+  padding: 10px 0;     /* отступ сверху и снизу */
+  box-sizing: border-box;
 }
 
 .bottom-btn {
-  flex: 1;
-  padding: 15px;
+  flex: 1;             /* равная ширина для всех кнопок */
+  margin: 0 10px;      /* промежуток между кнопками */
+  padding: 12px 0;     /* высота кнопок */
   text-align: center;
   color: white;
   cursor: pointer;
-  border-right: 1px solid #444;
+  border-radius: 25px; /* делаем овальные кнопки */
+  background: #444;    /* цвет кнопки */
+  font-weight: bold;
+  transition: 0.2s;    /* плавное изменение цвета при наведении */
+}
+
+.bottom-btn.play {
+  background: #28a745; /* зелёная кнопка для Играть */
+}
+
+.bottom-btn:hover {
+  background: #555;    /* эффект при наведении (для ПК) */
 }
 
 .bottom-btn:last-child {
