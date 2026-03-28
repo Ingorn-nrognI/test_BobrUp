@@ -39,7 +39,8 @@ let player = {
 };
 
 // Препятствия
-let obstacles = [];
+let obstacles = []
+  let gameSpeed = 0.008; // начальная скорость (медленная)
 
 // Создание препятствий
 function spawnObstacle() {
@@ -86,12 +87,12 @@ function updatePlayer() {
 // Движение препятствий
 function updateObstacles() {
   obstacles.forEach(o => {
-    o.z -= 0.015 + (1 - o.z) * 0.02;
+    // плавное движение + ускорение ближе к игроку
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
   });
 
   obstacles = obstacles.filter(o => o.z > 0);
 }
-
 // Дорога
 function drawRoad() {
   ctx.fillStyle = "#555";
@@ -141,6 +142,7 @@ function drawPlayer() {
 
 // Цикл
 function loop() {
+  gameSpeed += 0.00001; // плавное ускорение
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawRoad();
