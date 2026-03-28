@@ -108,16 +108,21 @@ function drawRoad() {
 function drawObstacles() {
   obstacles.forEach(o => {
     let scale = 1 - o.z;
+
+    // размер
     let size = 60 * scale;
 
-    let x = canvas.width / 2 + (o.x - canvas.width/2) * scale;
-    let y = canvas.height - (400 * scale);
+    // позиция X (центр + перспектива)
+    let x = canvas.width / 2 + (o.x - canvas.width / 2) * scale;
+
+    // ВОТ ГЛАВНОЕ — теперь сверху вниз
+    let y = 100 + (canvas.height - 200) * scale;
 
     ctx.drawImage(log, x, y, size, size);
 
     // столкновение
     if (
-      scale > 0.8 &&
+      scale > 0.85 &&
       player.x < x + size &&
       player.x + player.width > x &&
       player.y < y + size &&
