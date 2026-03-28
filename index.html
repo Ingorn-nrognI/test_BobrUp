@@ -1,136 +1,155 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Beaver Runner</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #87CEEB;
-    }
-
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: #a3d977;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Beaver Runner</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+  canvas { display: block; margin: auto; background: #87CEEB; }
+</style>
 </head>
 <body>
 
-<canvas id="gameCanvas"></canvas>
+<canvas id="game"></canvas>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 400;
-canvas.height = 600;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Загрузка картинок
-const beaverImg = new Image();
-beaverImg.src = "beaver.png";
+// Картинки
+const beaver = new Image();
+beaver.src = "beaver.png";
 
-const logImg = new Image();
-logImg.src = "log.png";
+const log = new Image();
+log.src = "log.png";
 
-// Игрок (бобёр)
+// Игрок
 let player = {
-  x: 180,
-  y: 450,
+  x: canvas.width / 2 - 30,
+  y: canvas.height - 150,
   width: 60,
   height: 60,
   dy: 0,
   gravity: 0.8,
-  jumpPower: -15,
+  jump: -15,
   grounded: true
 };
 
-// Брёвна
-let logs = [];
+// Препятствия
+let obstacles = [];
 
-// Генерация брёвен
-function spawnLog() {
-  logs.push({
-    x: Math.random() * 300 + 50,
-    y: -60,
-    width: 50,
-    height: 50,
-    speed: 5
+// Создание препятствий
+function spawnObstacle() {
+  obstacles.push({
+    x: Math.random() * 200 + (canvas.width/2 - 100),
+    z: 1
   });
 }
 
-// Прыжок
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && player.grounded) {
-    player.dy = player.jumpPower;
+// ПРЫЖОК (универсально)
+function jump() {
+  if (player.grounded) {
+    player.dy = player.jump;
     player.grounded = false;
   }
+}
+
+// 📱 ТАП (телефон)
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  jump();
 });
 
-// Обновление игрока
+// 🖱️ КЛИК (на всякий)
+canvas.addEventListener("click", jump);
+
+// ⌨️ ПК
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") jump();
+});
+
+// Физика
 function updatePlayer() {
   player.dy += player.gravity;
   player.y += player.dy;
 
-  if (player.y >= 450) {
-    player.y = 450;
+  if (player.y >= canvas.height - 150) {
+    player.y = canvas.height - 150;
     player.dy = 0;
     player.grounded = true;
   }
 }
 
-// Обновление брёвен
-function updateLogs() {
-  logs.forEach(log => {
-    log.y += log.speed;
+// Движение препятствий
+function updateObstacles() {
+  obstacles.forEach(o => {
+    o.z -= 0.02;
   });
 
-  logs = logs.filter(log => log.y < canvas.height);
+  obstacles = obstacles.filter(o => o.z > 0);
 }
 
-// Проверка столкновений
-function checkCollision() {
-  for (let log of logs) {
+// Дорога
+function drawRoad() {
+  ctx.fillStyle = "#555";
+  ctx.beginPath();
+  ctx.moveTo(canvas.width * 0.25, canvas.height);
+  ctx.lineTo(canvas.width * 0.75, canvas.height);
+  ctx.lineTo(canvas.width * 0.6, 0);
+  ctx.lineTo(canvas.width * 0.4, 0);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// Препятствия
+function drawObstacles() {
+  obstacles.forEach(o => {
+    let scale = 1 - o.z;
+    let size = 60 * scale;
+
+    let x = canvas.width / 2 + (o.x - canvas.width/2) * scale;
+    let y = canvas.height - (400 * scale);
+
+    ctx.drawImage(log, x, y, size, size);
+
+    // столкновение
     if (
-      player.x < log.x + log.width &&
-      player.x + player.width > log.x &&
-      player.y < log.y + log.height &&
-      player.y + player.height > log.y
+      scale > 0.8 &&
+      player.x < x + size &&
+      player.x + player.width > x &&
+      player.y < y + size &&
+      player.y + player.height > y
     ) {
       alert("Ты врезался!");
       location.reload();
     }
-  }
-}
-
-// Рисование
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Бобёр (вид сзади)
-  ctx.drawImage(beaverImg, player.x, player.y, player.width, player.height);
-
-  // Брёвна
-  logs.forEach(log => {
-    ctx.drawImage(logImg, log.x, log.y, log.width, log.height);
   });
 }
 
-// Игровой цикл
-function gameLoop() {
-  updatePlayer();
-  updateLogs();
-  checkCollision();
-  draw();
-  requestAnimationFrame(gameLoop);
+// Игрок
+function drawPlayer() {
+  ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
 }
 
-// Спавн каждые 1.5 секунды
-setInterval(spawnLog, 1500);
+// Цикл
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-gameLoop();
+  drawRoad();
+  updatePlayer();
+  updateObstacles();
+  drawObstacles();
+  drawPlayer();
+
+  requestAnimationFrame(loop);
+}
+
+setInterval(spawnObstacle, 1200);
+
+loop();
 </script>
 
 </body>
