@@ -40,36 +40,40 @@ body {
 
 /* Нижнее меню */
 .bottom-bar {
-  position: fixed;     /* фиксируем внизу */
-  bottom: 0;           /* прижимаем к низу */
-  left: 0;
-  width: 100%;         /* растягиваем на всю ширину */
+  position: fixed;
+  bottom: 20px;           /* чуть выше края экрана */
+  left: 50%;              /* центрируем по горизонтали */
+  transform: translateX(-50%); /* сдвигаем в центр */
+  width: 90%;             /* чуть меньше полной ширины */
+  max-width: 600px;       /* ограничиваем для больших экранов */
   display: flex;
-  justify-content: center; /* центруем кнопки по горизонтали */
-  background: #222;    /* фон панели */
-  padding: 10px 0;     /* отступ сверху и снизу */
+  justify-content: space-around; /* равномерно распределяем кнопки */
+  background: rgba(0, 0, 0, 0.6); /* полупрозрачный черный */
+  padding: 15px 20px;
+  border-radius: 50px;     /* делает панель овальной */
   box-sizing: border-box;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* небольшая тень */
 }
 
 .bottom-btn {
-  flex: 1;             /* равная ширина для всех кнопок */
-  margin: 0 10px;      /* промежуток между кнопками */
-  padding: 12px 0;     /* высота кнопок */
+  flex: 1;
+  margin: 0 10px;          /* отступ между кнопками */
+  padding: 12px 0;
   text-align: center;
   color: white;
   cursor: pointer;
-  border-radius: 25px; /* делаем овальные кнопки */
-  background: #444;    /* цвет кнопки */
+  border-radius: 25px;      /* овальные кнопки */
+  background: #444;         /* базовый цвет */
   font-weight: bold;
-  transition: 0.2s;    /* плавное изменение цвета при наведении */
+  transition: 0.2s;
 }
 
 .bottom-btn.play {
-  background: #28a745; /* зелёная кнопка для Играть */
+  background: #28a745;      /* зеленая кнопка Играть */
 }
 
 .bottom-btn:hover {
-  background: #555;    /* эффект при наведении (для ПК) */
+  background: #555;
 }
 
 .bottom-btn:last-child {
