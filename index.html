@@ -86,7 +86,7 @@ function updatePlayer() {
 // Движение препятствий
 function updateObstacles() {
   obstacles.forEach(o => {
-    o.z -= 0.02;
+    o.z -= 0.015 + (1 - o.z) * 0.02;
   });
 
   obstacles = obstacles.filter(o => o.z > 0);
