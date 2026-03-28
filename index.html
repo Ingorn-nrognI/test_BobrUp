@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Menu</title>
+<title>Menu + Game</title>
 
 <style>
 body {
@@ -61,46 +61,57 @@ body {
   background: #28a745;
   font-weight: bold;
 }
+
+/* Canvas для игры */
+#game {
+  display: none; /* скрыт пока не играем */
+  background: #87CEEB;
+}
 </style>
 </head>
 
 <body>
 
-<!-- Верх -->
-<div class="top-bar">
-  <div id="nickname">Игрок</div>
-  <div class="settings" onclick="openSettings()">⚙️</div>
+<!-- МЕНЮ -->
+<div id="menu">
+  <div class="top-bar">
+    <div id="nickname">Игрок</div>
+    <div class="settings" onclick="openSettings()">⚙️</div>
+  </div>
+
+  <div class="main">Beaver Runner 🦫</div>
+
+  <div class="bottom-bar">
+    <div class="bottom-btn" onclick="openLeaderboard()">📊 Таблица</div>
+    <div class="bottom-btn play" onclick="startGame()">▶ Играть</div>
+    <div class="bottom-btn" onclick="openSkins()">🎨 Скины</div>
+  </div>
 </div>
 
-<!-- Центр -->
-<div class="main">
-  Beaver Runner 🦫
-</div>
-
-<!-- Низ -->
-<div class="bottom-bar">
-  <div class="bottom-btn" onclick="openLeaderboard()">📊 Таблица</div>
-  <div class="bottom-btn play" onclick="startGame()">▶ Играть</div>
-  <div class="bottom-btn" onclick="openSkins()">🎨 Скины</div>
-</div>
+<!-- Canvas для игры -->
+<canvas id="game"></canvas>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <script>
 // Получаем ник из Telegram
 if (window.Telegram && Telegram.WebApp) {
   const user = Telegram.WebApp.initDataUnsafe.user;
-
   if (user) {
     document.getElementById("nickname").innerText =
       user.username || user.first_name;
   }
 }
 
-// КНОПКИ
+// ========================
+// КНОПКИ МЕНЮ
+// ========================
 
 function startGame() {
-  window.location.href = "game_bobrup.html";
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("game").style.display = "block";
+
+  // Запуск игры
+  initGame();
 }
 
 function openLeaderboard() {
@@ -113,12 +124,123 @@ function openSkins() {
 
 function openSettings() {
   let lang = prompt("Выбери язык: ru / en");
-
   if (lang === "en") {
     alert("Language switched to English");
   } else {
     alert("Язык: Русский");
   }
+}
+
+// ========================
+// ИГРА
+// ========================
+function initGame() {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Картинки
+  const beaver = new Image();
+  beaver.src = "beaver.png";
+
+  const log = new Image();
+  log.src = "log.png";
+
+  // Игрок
+  let player = {
+    x: canvas.width / 2 - 30,
+    y: canvas.height - 150,
+    width: 60,
+    height: 60,
+    dy: 0,
+    gravity: 0.8,
+    jump: -15,
+    grounded: true
+  };
+
+  // Препятствия
+  let obstacles = [];
+  let gameSpeed = 0.008;
+
+  function spawnObstacle() {
+    obstacles.push({ x: canvas.width / 2, z: 1 });
+  }
+
+  function jump() {
+    if (player.grounded) {
+      player.dy = player.jump;
+      player.grounded = false;
+    }
+  }
+
+  canvas.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
+  canvas.addEventListener("click", jump);
+  document.addEventListener("keydown", (e) => { if (e.code === "Space") jump(); });
+
+  function updatePlayer() {
+    player.dy += player.gravity;
+    player.y += player.dy;
+    if (player.y >= canvas.height - 150) {
+      player.y = canvas.height - 150;
+      player.dy = 0;
+      player.grounded = true;
+    }
+  }
+
+  function updateObstacles() {
+    obstacles.forEach(o => { o.z -= gameSpeed + (1 - o.z) * 0.015; });
+    obstacles = obstacles.filter(o => o.z > 0);
+  }
+
+  function drawRoad() {
+    ctx.fillStyle = "#555";
+    ctx.beginPath();
+    ctx.moveTo(canvas.width * 0.25, canvas.height);
+    ctx.lineTo(canvas.width * 0.75, canvas.height);
+    ctx.lineTo(canvas.width * 0.6, 0);
+    ctx.lineTo(canvas.width * 0.4, 0);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawObstacles() {
+    obstacles.forEach(o => {
+      let scale = 1 - o.z;
+      let size = 60 * scale;
+      let x = canvas.width / 2 - size/2;
+      let y = 100 + (canvas.height - 200) * scale;
+      ctx.drawImage(log, x, y, size, size);
+
+      if (scale > 0.85 &&
+          player.x < x + size &&
+          player.x + player.width > x &&
+          player.y < y + size &&
+          player.y + player.height > y) {
+        alert("Ты врезался!");
+        location.reload();
+      }
+    });
+  }
+
+  function drawPlayer() {
+    ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
+  }
+
+  function loop() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawRoad();
+    updatePlayer();
+    updateObstacles();
+    drawObstacles();
+    drawPlayer();
+    gameSpeed += 0.00001;
+    requestAnimationFrame(loop);
+  }
+
+  setInterval(spawnObstacle, 1200);
+  loop();
 }
 </script>
 
