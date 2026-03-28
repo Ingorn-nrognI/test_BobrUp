@@ -228,8 +228,11 @@ function spawnObstacle3() {
   document.addEventListener("keydown", (e) => { if (e.code === "Space") jump(); });
 
   function updatePlayer() {
-    player.dy += player.gravity;
-    player.y += player.dy;
+    
+  if (player.gameOver) return;
+  player.dy += player.gravity;
+  player.y += player.dy;
+    
     if (player.y >= canvas.height - 150) {
       player.y = canvas.height - 150;
       player.dy = 0;
@@ -245,6 +248,9 @@ function spawnObstacle3() {
 }
 
 function updateObstacles2() {
+  // ❗ ЕСЛИ ИГРОК ПРОИГРАЛ — НИЧЕГО НЕ ДВИГАЕМ
+  if (player.gameOver) return;
+
   obstacles2.forEach(o => {
     o.z -= gameSpeed + (1 - o.z) * 0.015;
   });
