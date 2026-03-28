@@ -1,192 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Beaver Run</title>
-<style>
-body {
-    margin: 0;
-    text-align: center;
-    background: #87CEEB;
-}
-#menu {
-    position: absolute;
-    width: 100%;
-    top: 30%;
-}
-button {
-    padding: 15px 30px;
-    font-size: 18px;
-    margin: 10px;
-}
-canvas {
-    display: none;
-    margin: auto;
-    background: lightgreen;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Beaver Runner</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #87CEEB;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #a3d977;
+    }
+  </style>
 </head>
 <body>
 
-<div id="menu">
-    <h1> BobrUp</h1>
-    <button onclick="startGame()">Играть</button>
-</div>
-
-<canvas id="game" width="600" height="800"></canvas>
+<canvas id="gameCanvas"></canvas>
 
 <script>
-const canvas = document.getElementById("game");
+const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const menu = document.getElementById("menu");
 
-let beaver = { x: 100, y: 500, vy: 0 };
-let gravity = 0.6;
-let gameOver = false;
+canvas.width = 400;
+canvas.height = 600;
 
-let obstacles = [];
-let speed = 5;
-
-let score = 0;
-let bestScore = localStorage.getItem("bestScore") || 0;
-
-// картинки
-let bg = new Image();
-let beaverImg = new Image();
-let logImg = new Image();
-
-bg.src = "bg.png";
+// Загрузка картинок
+const beaverImg = new Image();
 beaverImg.src = "beaver.png";
+
+const logImg = new Image();
 logImg.src = "log.png";
 
-// запуск
-function startGame() {
-    menu.style.display = "none";
-    canvas.style.display = "block";
+// Игрок (бобёр)
+let player = {
+  x: 180,
+  y: 450,
+  width: 60,
+  height: 60,
+  dy: 0,
+  gravity: 0.8,
+  jumpPower: -15,
+  grounded: true
+};
 
-    score = 0;
-    speed = 5;
-    gameOver = false;
-    obstacles = [];
-    beaver.y = 500;
+// Брёвна
+let logs = [];
 
-    document.addEventListener("click", jump);
-    spawnObstacle();
-    update();
+// Генерация брёвен
+function spawnLog() {
+  logs.push({
+    x: Math.random() * 300 + 50,
+    y: -60,
+    width: 50,
+    height: 50,
+    speed: 5
+  });
 }
 
-// прыжок
-function jump() {
-    if (beaver.y >= 500 && !gameOver) {
-        beaver.vy = -12;
-    }
+// Прыжок
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && player.grounded) {
+    player.dy = player.jumpPower;
+    player.grounded = false;
+  }
+});
 
-    if (gameOver) {
-        location.reload();
-    }
+// Обновление игрока
+function updatePlayer() {
+  player.dy += player.gravity;
+  player.y += player.dy;
+
+  if (player.y >= 450) {
+    player.y = 450;
+    player.dy = 0;
+    player.grounded = true;
+  }
 }
 
-// препятствия
-function spawnObstacle() {
-    if (gameOver) return;
+// Обновление брёвен
+function updateLogs() {
+  logs.forEach(log => {
+    log.y += log.speed;
+  });
 
-    obstacles.push({
-        x: canvas.width,
-        y: 520,
-        w: 50,
-        h: 50,
-        passed: false
-    });
-
-    setTimeout(spawnObstacle, 1400);
+  logs = logs.filter(log => log.y < canvas.height);
 }
 
-// столкновение
-function collision(a, b) {
-    return a.x < b.x + b.w &&
-           a.x + 40 > b.x &&
-           a.y < b.y + b.h &&
-           a.y + 40 > b.y;
+// Проверка столкновений
+function checkCollision() {
+  for (let log of logs) {
+    if (
+      player.x < log.x + log.width &&
+      player.x + player.width > log.x &&
+      player.y < log.y + log.height &&
+      player.y + player.height > log.y
+    ) {
+      alert("Ты врезался!");
+      location.reload();
+    }
+  }
 }
 
-// игра
-function update() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Рисование
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // фон
-    if (bg.complete) {
-        ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-    }
+  // Бобёр (вид сзади)
+  ctx.drawImage(beaverImg, player.x, player.y, player.width, player.height);
 
-    // физика
-    beaver.vy += gravity;
-    beaver.y += beaver.vy;
-
-    if (beaver.y > 500) {
-        beaver.y = 500;
-        beaver.vy = 0;
-    }
-
-    // бобёр
-    if (beaverImg.complete) {
-        ctx.drawImage(beaverImg, beaver.x, beaver.y, 50, 50);
-    } else {
-        ctx.fillStyle = "brown";
-        ctx.fillRect(beaver.x, beaver.y, 40, 40);
-    }
-
-    // препятствия
-    obstacles.forEach((o, i) => {
-        o.x -= speed;
-
-        // считаем очки
-        if (!o.passed && o.x + o.w < beaver.x) {
-            score++;
-            o.passed = true;
-        }
-
-        // рисуем бревно
-        if (logImg.complete) {
-            ctx.drawImage(logImg, o.x, o.y, o.w, o.h);
-        } else {
-            ctx.fillStyle = "green";
-            ctx.fillRect(o.x, o.y, o.w, o.h);
-        }
-
-        // столкновение
-        if (collision(beaver, o)) {
-            gameOver = true;
-
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem("bestScore", bestScore);
-            }
-        }
-
-        if (o.x < -50) obstacles.splice(i, 1);
-    });
-
-    // ускорение
-    speed += 0.002;
-
-    // текст
-    ctx.fillStyle = "white";
-    ctx.font = "27px Arial";
-    ctx.fillText("Счёт: " + score, 10, 30);
-    ctx.fillText("Рекорд: " + bestScore, 10, 60);
-
-    // проигрыш
-    if (gameOver) {
-        ctx.fillStyle = "red";
-        ctx.font = "30px Arial";
-        ctx.fillText("Ты проиграл", 100, 250);
-        ctx.font = "16px Arial";
-        ctx.fillText("Нажми чтобы начать заново", 70, 300);
-        return;
-    }
-
-    requestAnimationFrame(update);
+  // Брёвна
+  logs.forEach(log => {
+    ctx.drawImage(logImg, log.x, log.y, log.width, log.height);
+  });
 }
+
+// Игровой цикл
+function gameLoop() {
+  updatePlayer();
+  updateLogs();
+  checkCollision();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+// Спавн каждые 1.5 секунды
+setInterval(spawnLog, 1500);
+
+gameLoop();
 </script>
 
 </body>
