@@ -183,13 +183,31 @@ function initGame() {
     grounded: true
   };
 
+  // Полосы на дороге для трёх игроков
+const lane1 = canvas.width * 0.35;
+const lane2 = canvas.width * 0.5;
+const lane3 = canvas.width * 0.65;
+
+// Устанавливаем текущему игроку среднюю полосу
+player.x = lane2;
+
   // Препятствия
-  let obstacles = [];
+  let obstacles1 = []; // препятствия для игрока 1
+let obstacles2 = []; // препятствия для игрока 2
+let obstacles3 = []; // препятствия для игрока 3
   let gameSpeed = 0.008;
 
-  function spawnObstacle() {
-    obstacles.push({ x: canvas.width / 2, z: 1 });
-  }
+  function spawnObstacle1() {
+  obstacles1.push({ x: lane1, z: 1 });
+}
+
+function spawnObstacle2() {
+  obstacles2.push({ x: lane2, z: 1 });
+}
+
+function spawnObstacle3() {
+  obstacles3.push({ x: lane3, z: 1 });
+}
 
   function jump() {
     if (player.grounded) {
@@ -212,40 +230,70 @@ function initGame() {
     }
   }
 
-  function updateObstacles() {
-    obstacles.forEach(o => { o.z -= gameSpeed + (1 - o.z) * 0.015; });
-    obstacles = obstacles.filter(o => o.z > 0);
-  }
+  function updateObstacles1() {
+  obstacles1.forEach(o => {
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
+  });
+  obstacles1 = obstacles1.filter(o => o.z > 0);
+}
+
+function updateObstacles2() {
+  obstacles2.forEach(o => {
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
+  });
+  obstacles2 = obstacles2.filter(o => o.z > 0);
+}
+
+function updateObstacles3() {
+  obstacles3.forEach(o => {
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
+  });
+  obstacles3 = obstacles3.filter(o => o.z > 0);
+}
 
   function drawRoad() {
     ctx.fillStyle = "#555";
     ctx.beginPath();
-    ctx.moveTo(canvas.width * 0.25, canvas.height);
-    ctx.lineTo(canvas.width * 0.75, canvas.height);
-    ctx.lineTo(canvas.width * 0.6, 0);
-    ctx.lineTo(canvas.width * 0.4, 0);
+ctx.moveTo(canvas.width * 0.15, canvas.height); // левый нижний угол — смещаем влево
+ctx.lineTo(canvas.width * 0.85, canvas.height); // правый нижний угол — смещаем вправо
+ctx.lineTo(canvas.width * 0.55, 0);             // правый верхний угол — немного сдвигаем влево
+ctx.lineTo(canvas.width * 0.45, 0);             // левый верхний угол — немного сдвигаем вправо
     ctx.closePath();
     ctx.fill();
   }
 
-  function drawObstacles() {
-    obstacles.forEach(o => {
-      let scale = 1 - o.z;
-      let size = 60 * scale;
-      let x = canvas.width / 2 - size/2;
-      let y = 100 + (canvas.height - 200) * scale;
-      ctx.drawImage(log, x, y, size, size);
+  function drawObstacles1() {
+  obstacles1.forEach(o => {
+    let scale = 1 - o.z;
+    let size = 60 * scale;
+    let x = canvas.width / 2 + (lane1 - canvas.width / 2) * scale - size/2;
+    let y = 100 + (canvas.height - 200) * scale;
 
-      if (scale > 0.85 &&
-          player.x < x + size &&
-          player.x + player.width > x &&
-          player.y < y + size &&
-          player.y + player.height > y) {
-        alert("Ты врезался!");
-        location.reload();
-      }
-    });
-  }
+    ctx.drawImage(log, x, y, size, size);
+  });
+}
+
+function drawObstacles2() {
+  obstacles2.forEach(o => {
+    let scale = 1 - o.z;
+    let size = 60 * scale;
+    let x = canvas.width / 2 + (lane2 - canvas.width / 2) * scale - size/2;
+    let y = 100 + (canvas.height - 200) * scale;
+
+    ctx.drawImage(log, x, y, size, size);
+  });
+}
+
+function drawObstacles3() {
+  obstacles3.forEach(o => {
+    let scale = 1 - o.z;
+    let size = 60 * scale;
+    let x = canvas.width / 2 + (lane3 - canvas.width / 2) * scale - size/2;
+    let y = 100 + (canvas.height - 200) * scale;
+
+    ctx.drawImage(log, x, y, size, size);
+  });
+}
 
   function drawPlayer() {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
@@ -255,14 +303,21 @@ function initGame() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     drawRoad();
     updatePlayer();
-    updateObstacles();
-    drawObstacles();
+    updateObstacles1();
+updateObstacles2();
+updateObstacles3();
+
+drawObstacles1();
+drawObstacles2();
+drawObstacles3();
     drawPlayer();
     gameSpeed += 0.00001;
     requestAnimationFrame(loop);
   }
 
-  setInterval(spawnObstacle, 1200);
+  setInterval(spawnObstacle1, 1200);
+setInterval(spawnObstacle2, 1500);
+setInterval(spawnObstacle3, 1800);
   loop();
 }
 </script>
