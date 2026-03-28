@@ -135,7 +135,20 @@ function startGame() {
 
   // Запуск игры
   initGame();
-}
+  // Игрок
+let player = {
+  x: lane2 - 30, // уже стоял по центру
+  y: canvas.height - 150,
+  width: 60,
+  height: 60,
+  dy: 0,
+  gravity: 0.8,
+  jump: -15,
+  grounded: true,
+  gameOver: false,          // новый флаг
+  gameOverText: "",         // текст проигрыша
+  gameOverTimer: 0          // сколько кадров показывать
+};
 
 function openLeaderboard() {
   alert("Таблица лидеров");
@@ -277,16 +290,6 @@ function updateObstacles3() {
     let y = 100 + (canvas.height - 200) * scale;
 
     ctx.drawImage(log, x, y, size, size);
-    if (
-  scale > 0.85 &&
-  player.x < x + size &&
-  player.x + player.width > x &&
-  player.y < y + size &&
-  player.y + player.height > y
-) {
-  alert("Ты врезался!");
-  location.reload();
-}
   });
 }
 
@@ -294,23 +297,21 @@ function drawObstacles2() {
   obstacles2.forEach(o => {
     let scale = 1 - o.z;
     let size = 60 * scale;
-
     let x = canvas.width / 2 + (lane2 - canvas.width / 2) * scale - size/2;
     let y = 100 + (canvas.height - 200) * scale;
 
     ctx.drawImage(log, x, y, size, size);
 
-    // 💥 ВОТ ЭТО ДОБАВЬ
-    if (
-      scale > 0.85 &&
-      player.x < x + size &&
-      player.x + player.width > x &&
-      player.y < y + size &&
-      player.y + player.height > y
-    ) {
-      alert("Ты врезался!");
-      location.reload();
-    }
+    if (!player.gameOver &&
+        scale > 0.85 &&
+        player.x < x + size &&
+        player.x + player.width > x &&
+        player.y < y + size &&
+        player.y + player.height > y) {
+      player.gameOver = true;
+      player.gameOverText = "Ты врезался!";
+      player.gameOverTimer = 180; // показывать 3 секунды
+}
   });
 }
 
@@ -322,22 +323,21 @@ function drawObstacles3() {
     let y = 100 + (canvas.height - 200) * scale;
 
     ctx.drawImage(log, x, y, size, size);
-    
-    if (
-  scale > 0.85 &&
-  player.x < x + size &&
-  player.x + player.width > x &&
-  player.y < y + size &&
-  player.y + player.height > y
-) {
-  alert("Ты врезался!");
-  location.reload();
-}
   });
 }
 
   function drawPlayer() {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
+    if (player.gameOver && player.gameOverTimer > 0) {
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(canvas.width/2 - 150, canvas.height/2 - 50, 300, 100);
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "28px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(player.gameOverText, canvas.width/2, canvas.height/2 + 10);
+
+  player.gameOverTimer--;
   }
 
   function loop() {
