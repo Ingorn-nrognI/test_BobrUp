@@ -203,6 +203,8 @@ player.x = lane2 - player.width / 2;
 let obstacles2 = []; // препятствия для игрока 2
 let obstacles3 = []; // препятствия для игрока 3
   let gameSpeed = 0.008;
+  let watchBtn = {};
+let exitBtn = {};
 
   function spawnObstacle1() {
   obstacles1.push({ x: lane1, z: 1 });
@@ -224,8 +226,72 @@ function spawnObstacle3() {
   }
 
   canvas.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
-  canvas.addEventListener("click", jump);
-  document.addEventListener("keydown", (e) => { if (e.code === "Space") jump(); });
+  canvas.addEventListener("click", (e) => {
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  if (player.gameOver) {
+
+    // кнопка СМОТРЕТЬ
+    if (
+      x > watchBtn.x &&
+      x < watchBtn.x + watchBtn.w &&
+      y > watchBtn.y &&
+      y < watchBtn.y + watchBtn.h
+    ) {
+      player.gameOver = false;
+    }
+
+    // кнопка ВЫЙТИ
+    if (
+      x > exitBtn.x &&
+      x < exitBtn.x + exitBtn.w &&
+      y > exitBtn.y &&
+      y < exitBtn.y + exitBtn.h
+    ) {
+      location.reload();
+    }
+
+    return;
+  }
+
+  jump();
+});
+  canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  if (player.gameOver) {
+
+    if (
+      x > watchBtn.x &&
+      x < watchBtn.x + watchBtn.w &&
+      y > watchBtn.y &&
+      y < watchBtn.y + watchBtn.h
+    ) {
+      player.gameOver = false;
+    }
+
+    if (
+      x > exitBtn.x &&
+      x < exitBtn.x + exitBtn.w &&
+      y > exitBtn.y &&
+      y < exitBtn.y + exitBtn.h
+    ) {
+      location.reload();
+    }
+
+    return;
+  }
+
+  jump();
+});
 
   function updatePlayer() {
     
@@ -321,17 +387,82 @@ function drawObstacles3() {
 
   function drawPlayer() {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
-    if (player.gameOver && player.gameOverTimer > 0) {
+    if (player.gameOver) {
+
+  // === ФОН (затемнение экрана)
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // === ОВАЛЬНОЕ ОКНО
+  const boxWidth = 300;
+  const boxHeight = 180;
+  const boxX = canvas.width / 2 - boxWidth / 2;
+  const boxY = canvas.height / 2 - boxHeight / 2;
+
+  // функция рисования закругленного прямоугольника
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // === рисуем окно
   ctx.fillStyle = "rgba(0,0,0,0.7)";
-  ctx.fillRect(canvas.width/2 - 150, canvas.height/2 - 50, 300, 100);
+  roundRect(boxX, boxY, boxWidth, boxHeight, 25);
+
+  // === ТЕКСТ
+  ctx.fillStyle = "#fff";
+  ctx.font = "22px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Ты врезался!", canvas.width/2, boxY + 50);
+
+  // === КНОПКИ
+
+  // кнопка "Смотреть"
+  const btnWidth = 110;
+  const btnHeight = 40;
+
+  const watchX = boxX + 20;
+  const watchY = boxY + 100;
+      watchBtn = {
+  x: watchX,
+  y: watchY,
+  w: btnWidth,
+  h: btnHeight
+};
+
+  ctx.fillStyle = "#28a745";
+  roundRect(watchX, watchY, btnWidth, btnHeight, 15);
 
   ctx.fillStyle = "#fff";
-  ctx.font = "28px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(player.gameOverText, canvas.width/2, canvas.height/2 + 10);
+  ctx.font = "16px Arial";
+  ctx.fillText("Смотреть", watchX + btnWidth/2, watchY + 25);
 
-  player.gameOverTimer--;
-  }
+  // кнопка "Выйти"
+  const exitX = boxX + boxWidth - btnWidth - 20;
+  const exitY = watchY;
+      watchBtn = {
+  x: watchX,
+  y: watchY,
+  w: btnWidth,
+  h: btnHeight
+};
+
+  ctx.fillStyle = "#dc3545";
+  roundRect(exitX, exitY, btnWidth, btnHeight, 15);
+
+  ctx.fillStyle = "#fff";
+  ctx.fillText("Выйти", exitX + btnWidth/2, exitY + 25);
+}
     }
 
   function loop() {
