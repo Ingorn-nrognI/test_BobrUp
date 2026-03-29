@@ -263,26 +263,31 @@ function spawnObstacle3() {
   });
   
   canvas.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
 
-    if (player.gameOver) {
-      if (x > watchBtn.x && x < watchBtn.x + watchBtn.w &&
-          y > watchBtn.y && y < watchBtn.y + watchBtn.h) {
-        player.isWatching = true;
-        player.gameOver = false;
-      }
-      if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
-          y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
-        location.reload();
-      }
-      return;
+  if (player.gameOver) {
+    // кнопка СМОТРЕТЬ
+    if (x > watchBtn.x && x < watchBtn.x + watchBtn.w &&
+        y > watchBtn.y && y < watchBtn.y + watchBtn.h) {
+      isWatching2 = true;  // Останавливаем ТОЛЬКО среднюю полосу
+      player.gameOver = false;
+      player.dy = 0;
+      player.grounded = true;
+      // obstacles2 уже очищен при столкновении, так что ничего не делаем
     }
-    jump();
-  });
+    // кнопка ВЫЙТИ
+    if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
+        y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
+      location.reload();
+    }
+    return;
+  }
+  jump();
+});
 
   function updatePlayer() {
   // ЕСЛИ ИГРОК НАБЛЮДАЕТ - НЕ ОБНОВЛЯЕМ ЕГО ФИЗИКУ
@@ -354,6 +359,11 @@ function updateObstacles3() {
   }
 
   function drawObstacles2() {
+    let frozenObstacle = null;
+let isWatching1 = false;
+let isWatching2 = false;
+let isWatching3 = false;
+    
   // Рисуем замороженное бревно (если есть)
   if (frozenObstacle) {
     ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
