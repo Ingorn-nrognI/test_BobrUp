@@ -251,7 +251,6 @@ function spawnObstacle3() {
   player.gameOver = false;
   player.dy = 0;
   player.grounded = true;
-  obstacles2 = [];
 }
       // кнопка ВЫЙТИ
       if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
@@ -355,12 +354,13 @@ function updateObstacles3() {
   }
 
   function drawObstacles2() {
-  // Если есть замороженное бревно - рисуем его
-  if (frozenObstacle && isWatching2) {
+  // Рисуем замороженное бревно (если есть)
+  if (frozenObstacle) {
     ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
   }
-  // Рисуем остальные бревна (только если не в режиме наблюдателя)
-  if (!isWatching2) {
+  
+  // Рисуем движущиеся бревна только если игрок не в Game Over
+  if (!player.gameOver && !isWatching2) {
     obstacles2.forEach(o => {
       let scale = 1 - o.z;
       let size = 60 * scale;
@@ -369,7 +369,8 @@ function updateObstacles3() {
 
       ctx.drawImage(log, x, y, size, size);
       
-      if (!player.gameOver && !isWatching2 && scale > 0.85 &&
+      // Проверка столкновения
+      if (scale > 0.85 &&
           player.x < x + size && player.x + player.width > x &&
           player.y < y + size && player.y + player.height > y) {
         
@@ -379,6 +380,9 @@ function updateObstacles3() {
           size: size,
           scale: scale
         };
+        
+        obstacles2 = [];  // Очищаем все бревна
+        
         player.gameOver = true;
       }
     });
