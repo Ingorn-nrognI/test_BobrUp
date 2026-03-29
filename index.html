@@ -359,11 +359,6 @@ function updateObstacles3() {
   }
 
   function drawObstacles2() {
-    let frozenObstacle = null;
-let isWatching1 = false;
-let isWatching2 = false;
-let isWatching3 = false;
-    
   // Рисуем замороженное бревно (если есть)
   if (frozenObstacle) {
     ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
