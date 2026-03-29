@@ -314,28 +314,14 @@ function spawnObstacle3() {
     }
   }
 
-  function updateObstacles1() {
-  obstacles1.forEach(o => {
-    o.z -= gameSpeed + (1 - o.z) * 0.015;
-  });
-  obstacles1 = obstacles1.filter(o => o.z > 0);
+  function spawnObstacle1() {
+  if (!player.isWatching) obstacles1.push({ x: lane1, z: 1 });
 }
-
-function updateObstacles2() {
-  // ❗ ЕСЛИ ИГРОК ПРОИГРАЛ — НИЧЕГО НЕ ДВИГАЕМ
-  if (player.gameOver || player.isWatching) return;
-
-  obstacles2.forEach(o => {
-    o.z -= gameSpeed + (1 - o.z) * 0.015;
-  });
-  obstacles2 = obstacles2.filter(o => o.z > 0);
+function spawnObstacle2() {
+  if (!player.isWatching) obstacles2.push({ x: lane2, z: 1 });
 }
-
-function updateObstacles3() {
-  obstacles3.forEach(o => {
-    o.z -= gameSpeed + (1 - o.z) * 0.015;
-  });
-  obstacles3 = obstacles3.filter(o => o.z > 0);
+function spawnObstacle3() {
+  if (!player.isWatching) obstacles3.push({ x: lane3, z: 1 });
 }
 
   function drawRoad() {
@@ -357,6 +343,17 @@ function updateObstacles3() {
     let y = 100 + (canvas.height - 200) * scale;
 
     ctx.drawImage(log, x, y, size, size);
+    
+    if (!player.gameOver && !player.isWatching &&
+    scale > 0.85 &&
+    player.x < x + size &&
+    player.x + player.width > x &&
+    player.y < y + size &&
+    player.y + player.height > y) {
+  player.gameOver = true;
+  player.gameOverText = "Ты врезался!";
+  player.gameOverTimer = 180;
+}
   });
 }
 
@@ -369,15 +366,15 @@ function drawObstacles2() {
 
     ctx.drawImage(log, x, y, size, size);
 
-    if (!player.gameOver &&
-        scale > 0.85 &&
-        player.x < x + size &&
-        player.x + player.width > x &&
-        player.y < y + size &&
-        player.y + player.height > y) {
-      player.gameOver = true;
-      player.gameOverText = "Ты врезался!";
-      player.gameOverTimer = 180; // показывать 3 секунды
+    if (!player.gameOver && !player.isWatching &&
+    scale > 0.85 &&
+    player.x < x + size &&
+    player.x + player.width > x &&
+    player.y < y + size &&
+    player.y + player.height > y) {
+  player.gameOver = true;
+  player.gameOverText = "Ты врезался!";
+  player.gameOverTimer = 180;
 }
   });
 }
@@ -390,6 +387,17 @@ function drawObstacles3() {
     let y = 100 + (canvas.height - 200) * scale;
 
     ctx.drawImage(log, x, y, size, size);
+    
+    if (!player.gameOver && !player.isWatching &&
+    scale > 0.85 &&
+    player.x < x + size &&
+    player.x + player.width > x &&
+    player.y < y + size &&
+    player.y + player.height > y) {
+  player.gameOver = true;
+  player.gameOverText = "Ты врезался!";
+  player.gameOverTimer = 180;
+}
   });
 }
 
