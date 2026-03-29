@@ -101,21 +101,19 @@ body {
 <div id="leaderboardModal" style="
     display: none;
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
+    top: 60px; /* чуть ниже верхней панели с ником */
+    left: 0;
+    width: 100%;
+    bottom: 80px; /* чуть выше нижней панели с кнопками */
     background: rgba(0,0,0,0.9);
     color: white;
-    border-radius: 20px;
     padding: 20px;
     z-index: 100;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    overflow-y: auto;
 ">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
     <h2 style="margin:0;">🏆 Таблица лидеров</h2>
-    <span style="cursor:pointer;" onclick="closeLeaderboard()">✖️</span>
+    <span style="cursor:pointer; font-size:22px;" onclick="closeLeaderboard()">✖️</span>
   </div>
   <div id="leaderboardContent" style="font-size:18px; line-height:1.5;"></div>
 </div>
