@@ -135,7 +135,7 @@ function startGame() {
 
   // Запуск игры
   initGame();
-}
+  
 let exitBtn = {x:0, y:0, w:0, h:0}; // в начале
 let watchBtn = {x:0, y:0, w:0, h:0}; // 👈 добавь 
   
@@ -409,7 +409,7 @@ function drawObstacles3() {
 
   function drawPlayer() {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
-    if (player.gameOver) {
+    if (player.gameOver) }
 
   // === ФОН (затемнение экрана)
   ctx.fillStyle = "rgba(0,0,0,0.5)";
