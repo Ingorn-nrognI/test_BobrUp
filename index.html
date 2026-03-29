@@ -211,12 +211,17 @@ let gameSpeed = 0.008;
 let isWatching1 = false;  // левая полоса
 let isWatching2 = false;  // средняя полоса (игрок)
 let isWatching3 = false;  // правая полоса
+  
   // Для хранения бревна, в которое врезался игрок
 let frozenObstacle = null;
   
   // Кнопки для Game Over
   let exitBtn = {x: 0, y: 0, w: 0, h: 0};
   let watchBtn = {x: 0, y: 0, w: 0, h: 0};
+
+    // Кнопка выхода в правом нижнем углу (для наблюдателя)
+  let exitToMenuBtn = {x: 0, y: 0, w: 0, h: 0};
+  let showExitButton = false;
 
   function spawnObstacle1() {
   if (!isWatching1) obstacles1.push({ x: lane1, z: 1 });
@@ -243,6 +248,13 @@ function spawnObstacle3() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    if (showExitButton && 
+      x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
+      y > exitToMenuBtn.y && y < exitToMenuBtn.y + exitToMenuBtn.h) {
+    document.getElementById("menu").style.display = "flex";
+    document.getElementById("game").style.display = "none";
+    return;
+  }
     if (player.gameOver) {
       // кнопка СМОТРЕТЬ
       if (x > watchBtn.x && x < watchBtn.x + watchBtn.w &&
@@ -256,6 +268,7 @@ function spawnObstacle3() {
     player.x = player.frozenX;
     player.y = player.frozenY;
   }
+        showExitButton = true;
 }
       // кнопка ВЫЙТИ
       if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
@@ -273,6 +286,14 @@ function spawnObstacle3() {
   const rect = canvas.getBoundingClientRect();
   const x = touch.clientX - rect.left;
   const y = touch.clientY - rect.top;
+    
+    if (showExitButton && 
+      x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
+      y > exitToMenuBtn.y && y < exitToMenuBtn.y + exitToMenuBtn.h) {
+    document.getElementById("menu").style.display = "flex";
+    document.getElementById("game").style.display = "none";
+    return;
+  }
 
   if (player.gameOver) {
     // кнопка СМОТРЕТЬ
@@ -282,6 +303,7 @@ function spawnObstacle3() {
       player.gameOver = false;
       player.dy = 0;
       player.grounded = true;
+      showExitButton = true
       // obstacles2 уже очищен при столкновении, так что ничего не делаем
     }
     // кнопка ВЫЙТИ
@@ -427,11 +449,35 @@ function updateObstacles3() {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
   }
 }
+// Сначала функция drawExitButton (отдельно)
+function drawExitButton() {
+  if (!showExitButton) return;
+  
+  const btnWidth = 100;
+  const btnHeight = 45;
+  const padding = 20;
+  
+  const btnX = canvas.width - btnWidth - padding;
+  const btnY = canvas.height - btnHeight - padding;
+  
+  exitToMenuBtn = { x: btnX, y: btnY, w: btnWidth, h: btnHeight };
+  
+  ctx.fillStyle = "#dc3545";
+  ctx.beginPath();
+  ctx.roundRect(btnX, btnY, btnWidth, btnHeight, 10);
+  ctx.fill();
+  
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 16px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Выйти", btnX + btnWidth/2, btnY + btnHeight/2 + 5);
+}
 
-  function drawGameOver() {
-    // Фон (затемнение экрана)
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Потом функция drawGameOver (отдельно)
+function drawGameOver() {
+  // Фон (затемнение экрана)
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // ОВАЛЬНОЕ ОКНО
     const boxWidth = 300;
@@ -504,6 +550,8 @@ function updateObstacles3() {
     if (player.gameOver) {
       drawGameOver();
     }
+    
+    drawExitButton();
     
     gameSpeed += 0.00001;
     requestAnimationFrame(loop);
