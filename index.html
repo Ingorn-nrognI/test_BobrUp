@@ -178,15 +178,18 @@ const laneOffset = 0.2;  // расстояние от центра до боко
 
   // Игрок
   let player = {
-    x: canvas.width / 2 - 30,
-    y: canvas.height - 150,
-    width: 60,
-    height: 60,
-    dy: 0,
-    gravity: 0.8,
-    jump: -15,
-    grounded: true
-  };
+  x: canvas.width / 2 - 30,
+  y: canvas.height - 150,
+  width: 60,
+  height: 60,
+  dy: 0,
+  gravity: 0.8,
+  jump: -15,
+  grounded: true,
+
+  gameOver: false,
+  isWatching: false   // 👈 ВОТ ЭТО ДОБАВЬ
+};
 
   // Полосы на дороге для трёх игроков
 const roadCenter = (roadLeft + roadRight) / 2;
@@ -219,13 +222,12 @@ function spawnObstacle3() {
 }
 
   function jump() {
-    if (player.grounded) {
+  if (player.grounded && !player.gameOver && !player.isWatching) {
       player.dy = player.jump;
       player.grounded = false;
     }
   }
 
-  canvas.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
   canvas.addEventListener("click", (e) => {
 
   const rect = canvas.getBoundingClientRect();
@@ -241,7 +243,7 @@ function spawnObstacle3() {
       y > watchBtn.y &&
       y < watchBtn.y + watchBtn.h
     ) {
-      player.gameOver = false;
+      player.isWatching = true;
     }
 
     // кнопка ВЫЙТИ
@@ -275,7 +277,7 @@ function spawnObstacle3() {
       y > watchBtn.y &&
       y < watchBtn.y + watchBtn.h
     ) {
-      player.gameOver = false;
+      player.isWatching = true;
     }
 
     if (
@@ -295,7 +297,7 @@ function spawnObstacle3() {
 
   function updatePlayer() {
     
-  if (player.gameOver) return;
+  if (player.gameOver || player.isWatching) return;
   player.dy += player.gravity;
   player.y += player.dy;
     
@@ -315,7 +317,7 @@ function spawnObstacle3() {
 
 function updateObstacles2() {
   // ❗ ЕСЛИ ИГРОК ПРОИГРАЛ — НИЧЕГО НЕ ДВИГАЕМ
-  if (player.gameOver) return;
+  if (player.gameOver || player.isWatching) return;
 
   obstacles2.forEach(o => {
     o.z -= gameSpeed + (1 - o.z) * 0.015;
@@ -450,9 +452,9 @@ function drawObstacles3() {
   // кнопка "Выйти"
   const exitX = boxX + boxWidth - btnWidth - 20;
   const exitY = watchY;
-      watchBtn = {
-  x: watchX,
-  y: watchY,
+      exitBtn = {
+  x: exitX,
+  y: exitY,
   w: btnWidth,
   h: btnHeight
 };
