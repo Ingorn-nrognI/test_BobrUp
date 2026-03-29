@@ -97,19 +97,20 @@ body {
 
 <!-- МЕНЮ -->
 <div id="menu">
-  <!-- Модальное окно Таблицы лидеров -->
+<!-- Модальное окно Таблицы лидеров -->
 <div id="leaderboardModal" style="
     display: none;
     position: fixed;
-    top: 60px; /* чуть ниже верхней панели с ником */
+    top: 0;       /* от самого верха */
     left: 0;
-    width: 100%;
-    bottom: 80px; /* чуть выше нижней панели с кнопками */
+    right: 0;
+    bottom: 0;    /* до самого низа */
     background: rgba(0,0,0,0.9);
     color: white;
-    padding: 20px;
-    z-index: 100;
+    padding: 60px 20px 100px 20px; /* отступ сверху и снизу для панели ник/кнопки */
+    z-index: 9999;
     overflow-y: auto;
+    box-sizing: border-box;
 ">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
     <h2 style="margin:0;">🏆 Таблица лидеров</h2>
