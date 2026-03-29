@@ -137,6 +137,7 @@ function startGame() {
   initGame();
 }
 let exitBtn = {x:0, y:0, w:0, h:0}; // в начале
+let watchBtn = {x:0, y:0, w:0, h:0}; // 👈 добавь 
   
 function openLeaderboard() {
   alert("Таблица лидеров");
@@ -207,8 +208,6 @@ player.x = lane2 - player.width / 2;
 let obstacles2 = []; // препятствия для игрока 2
 let obstacles3 = []; // препятствия для игрока 3
   let gameSpeed = 0.008;
-  let watchBtn = {};
-let exitBtn = {};
 
   function spawnObstacle1() {
   if (!player.isWatching) obstacles1.push({ x: lane1, z: 1 });
@@ -218,7 +217,6 @@ function spawnObstacle2() {
 }
 function spawnObstacle3() {
   if (!player.isWatching) obstacles3.push({ x: lane3, z: 1 });
-}
 }
 
   function jump() {
@@ -237,10 +235,12 @@ function spawnObstacle3() {
   if (player.gameOver) {
 
     // кнопка СМОТРЕТЬ
-    if (x > watchBtn.x &&
-    x < watchBtn.x + watchBtn.w &&
-    y > watchBtn.y &&
-    y < watchBtn.y + watchBtn.h) {
+    if (
+  x > watchBtn.x &&
+  x < watchBtn.x + watchBtn.w &&
+  y > watchBtn.y &&
+  y < watchBtn.y + watchBtn.h
+) {
   player.isWatching = true;
   player.gameOver = false; // если хочешь убрать окно "Ты врезался"
 }
@@ -270,11 +270,12 @@ function spawnObstacle3() {
 
   if (player.gameOver) {
 
-    if 
-      (x > watchBtn.x &&
-    x < watchBtn.x + watchBtn.w &&
-    y > watchBtn.y &&
-    y < watchBtn.y + watchBtn.h) {
+    if (
+  x > watchBtn.x &&
+  x < watchBtn.x + watchBtn.w &&
+  y > watchBtn.y &&
+  y < watchBtn.y + watchBtn.h
+) {
   player.isWatching = true;
   player.gameOver = false; // ❗ добавить и сюда
 }
