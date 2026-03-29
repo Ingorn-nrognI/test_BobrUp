@@ -90,6 +90,45 @@ body {
   display: none; /* скрыт пока не играем */
   background: #87CEEB;
 }
+     Стили модалки таблицы
+======================== */
+#leaderboardModal {
+  display: none;               /* изначально скрыта */
+  position: fixed;
+  top: 60px;                   /* под верхней панелью с ником */
+  left: 20px;
+  right: 20px;
+  bottom: 100px;               /* над нижней панелью кнопок */
+  background: rgba(0,0,0,0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  z-index: 9999;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.leaderboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.leaderboardHeader h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.closeBtn {
+  cursor: pointer;
+  font-size: 22px;
+}
+
+#leaderboardContent {
+  font-size: 18px;
+  line-height: 1.5;
+}
 </style>
 </head>
 
@@ -97,33 +136,12 @@ body {
 
 <!-- МЕНЮ -->
 <div id="menu">
-<!-- Модальное окно Таблицы лидеров -->
-<div id="leaderboardModal" style="
-    display: none;
-    position: fixed;
-    top: 0;       /* от самого верха */
-    left: 0;
-    right: 0;
-    bottom: 0;    /* до самого низа */
-    background: rgba(0,0,0,0.9);
-    color: white;
-    padding: 60px 20px 100px 20px; /* отступ сверху и снизу для панели ник/кнопки */
-    z-index: 9999;
-    overflow-y: auto;
-    box-sizing: border-box;
-">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
-    <h2 style="margin:0;">🏆 Таблица лидеров</h2>
-    <span style="cursor:pointer; font-size:22px;" onclick="closeLeaderboard()">✖️</span>
-  </div>
-  <div id="leaderboardContent" style="font-size:18px; line-height:1.5;"></div>
-</div>
   <div class="top-bar">
     <div id="nickname">Игрок</div>
     <div class="settings" onclick="openSettings()">⚙️</div>
   </div>
 
-  <div class="main">Beaver Runner 🦫</div>
+  <div class="main">BobrUp</div>
 
   <div class="bottom-bar">
     <div class="bottom-btn" onclick="openLeaderboard()">📊 Таблица</div>
@@ -134,6 +152,15 @@ body {
 
 <!-- Canvas для игры -->
 <canvas id="game" style="display: none;"></canvas>
+
+<!-- Таблица лидеров (модалка) -->
+<div id="leaderboardModal">
+  <div class="leaderboardHeader">
+    <h2>🏆 Таблица лидеров</h2>
+    <span class="closeBtn" onclick="closeLeaderboard()">✖️</span>
+  </div>
+  <div id="leaderboardContent"></div>
+</div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
@@ -177,10 +204,10 @@ function openLeaderboard() {
   document.getElementById("leaderboardModal").style.display = "block";
 }
 
-// функция закрытия модалки
 function closeLeaderboard() {
   document.getElementById("leaderboardModal").style.display = "none";
 }
+
 function saveBestScore(score) {
   const name = document.getElementById("nickname").innerText;
 
@@ -199,6 +226,11 @@ function saveBestScore(score) {
   leaderboard.sort((a, b) => b.score - a.score);
 
   localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
+  // Если таблица открыта — обновляем её автоматически
+  if (document.getElementById("leaderboardModal").style.display === "block") {
+    openLeaderboard();
+  }
 }
   
 function openSkins() {
@@ -710,6 +742,7 @@ ctx.fillText("Score: " + score, 20, 40);
     background: #87CEEB;
     z-index: 5;
   }
+
 </style>
 </script>
 
