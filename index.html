@@ -97,6 +97,28 @@ body {
 
 <!-- МЕНЮ -->
 <div id="menu">
+  <!-- Модальное окно Таблицы лидеров -->
+<div id="leaderboardModal" style="
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    border-radius: 20px;
+    padding: 20px;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+    <h2 style="margin:0;">🏆 Таблица лидеров</h2>
+    <span style="cursor:pointer;" onclick="closeLeaderboard()">✖️</span>
+  </div>
+  <div id="leaderboardContent" style="font-size:18px; line-height:1.5;"></div>
+</div>
   <div class="top-bar">
     <div id="nickname">Игрок</div>
     <div class="settings" onclick="openSettings()">⚙️</div>
@@ -140,18 +162,25 @@ function startGame() {
 function openLeaderboard() {
   let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
+  const contentDiv = document.getElementById("leaderboardContent");
+  contentDiv.innerHTML = ""; // очищаем перед заполнением
+
   if (leaderboard.length === 0) {
-    alert("Пока нет рекордов");
-    return;
+    contentDiv.innerHTML = "<p>Пока нет рекордов</p>";
+  } else {
+    leaderboard.slice(0, 10).forEach((p, index) => {
+      const row = document.createElement("div");
+      row.textContent = `${index + 1}. ${p.name} — ${p.score}`;
+      contentDiv.appendChild(row);
+    });
   }
 
-  let text = "🏆 Таблица лидеров:\n\n";
+  document.getElementById("leaderboardModal").style.display = "block";
+}
 
-  leaderboard.slice(0, 10).forEach((p, index) => {
-    text += (index + 1) + ". " + p.name + " — " + p.score + "\n";
-  });
-
-  alert(text);
+// функция закрытия модалки
+function closeLeaderboard() {
+  document.getElementById("leaderboardModal").style.display = "none";
 }
 function saveBestScore(score) {
   const name = document.getElementById("nickname").innerText;
