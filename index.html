@@ -366,6 +366,7 @@ function updateObstacles3() {
   function drawObstacles2() {
   // Рисуем замороженное бревно (если есть) - ВСЕГДА рисуем
   if (frozenObstacle) {
+    console.log("Рисую frozenObstacle:", frozenObstacle);
     ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
   }
   
