@@ -251,6 +251,11 @@ function spawnObstacle3() {
   player.gameOver = false;
   player.dy = 0;
   player.grounded = true;
+        
+        if (player.frozenX !== undefined) {
+    player.x = player.frozenX;
+    player.y = player.frozenY;
+  }
 }
       // кнопка ВЫЙТИ
       if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
@@ -359,12 +364,12 @@ function updateObstacles3() {
   }
 
   function drawObstacles2() {
-  // Рисуем замороженное бревно (если есть)
+  // Рисуем замороженное бревно (если есть) - ВСЕГДА рисуем
   if (frozenObstacle) {
     ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
   }
   
-  // Рисуем движущиеся бревна только если игрок не в Game Over
+  // Рисуем движущиеся бревна только если игрок не в Game Over И не в режиме наблюдателя
   if (!player.gameOver && !isWatching2) {
     obstacles2.forEach(o => {
       let scale = 1 - o.z;
@@ -379,15 +384,17 @@ function updateObstacles3() {
           player.x < x + size && player.x + player.width > x &&
           player.y < y + size && player.y + player.height > y) {
         
+        // Сохраняем бревно с ТОЧНЫМИ координатами
         frozenObstacle = {
           x: x,
           y: y,
           size: size,
           scale: scale
         };
-        
+
+         player.frozenX = player.x;  // запоминаем позицию игрока
+  player.frozenY = player.y;  // запоминаем позицию игрока
         obstacles2 = [];  // Очищаем все бревна
-        
         player.gameOver = true;
       }
     });
@@ -412,8 +419,13 @@ function updateObstacles3() {
   }
 
   function drawPlayer() {
+  // Если есть замороженное бревно и игрок в режиме наблюдателя - рисуем на замороженной позиции
+  if (frozenObstacle && isWatching2) {
+    ctx.drawImage(beaver, player.frozenX || player.x, player.frozenY || player.y, player.width, player.height);
+  } else {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
   }
+}
 
   function drawGameOver() {
     // Фон (затемнение экрана)
