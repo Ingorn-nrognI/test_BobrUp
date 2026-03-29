@@ -138,9 +138,41 @@ function startGame() {
 }
 
 function openLeaderboard() {
-  alert("Таблица лидеров");
-}
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
+  if (leaderboard.length === 0) {
+    alert("Пока нет рекордов");
+    return;
+  }
+
+  let text = "🏆 Таблица лидеров:\n\n";
+
+  leaderboard.slice(0, 10).forEach((p, index) => {
+    text += (index + 1) + ". " + p.name + " — " + p.score + "\n";
+  });
+
+  alert(text);
+}
+function saveBestScore(score) {
+  const name = document.getElementById("nickname").innerText;
+
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+
+  let player = leaderboard.find(p => p.name === name);
+
+  if (player) {
+    if (score > player.score) {
+      player.score = score;
+    }
+  } else {
+    leaderboard.push({ name: name, score: score });
+  }
+
+  leaderboard.sort((a, b) => b.score - a.score);
+
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+}
+  
 function openSkins() {
   alert("Скины");
 }
@@ -202,11 +234,11 @@ function initGame() {
   player.x = lane2 - player.width / 2;
 
   // Препятствия
-  let obstacles1 = [];
+let obstacles1 = [];
 let obstacles2 = [];
 let obstacles3 = [];
-let gameSpeed = 0.008;
-
+let gameSpeed = 0.008; 
+let score = 0;
 // Флаги для каждой полосы (кто в режиме наблюдателя)
 let isWatching1 = false;  // левая полоса
 let isWatching2 = false;  // средняя полоса (игрок)
@@ -228,7 +260,7 @@ let frozenObstacle = null;
 }
 
 function spawnObstacle2() {
-  if (!isWatching2) obstacles2.push({ x: lane2, z: 1 });
+  if (!isWatching2) obstacles2.push({ x: lane2, z: 1, passed: false });
 }
 
 function spawnObstacle3() {
@@ -402,6 +434,10 @@ function updateObstacles3() {
 
       ctx.drawImage(log, x, y, size, size);
       
+if (!o.passed && o.z < 0.2) {
+  o.passed = true;
+  score++;
+}
       // Проверка столкновения
       if (scale > 0.85 &&
           player.x < x + size && player.x + player.width > x &&
@@ -418,6 +454,9 @@ function updateObstacles3() {
          player.frozenX = player.x;  // запоминаем позицию игрока
   player.frozenY = player.y;  // запоминаем позицию игрока
         obstacles2 = [];  // Очищаем все бревна
+        player.gameOverText = "Ты врезался! Счёт: " + score;
+saveBestScore(score);
+        if (score <= 0) return;
         player.gameOver = true;
       }
     });
@@ -546,6 +585,9 @@ function drawGameOver() {
     drawObstacles2();
     drawObstacles3();
     drawPlayer();
+    ctx.fillStyle = "#fff";
+ctx.font = "20px Arial";
+ctx.fillText("Score: " + score, 20, 40);
     
     if (player.gameOver) {
       drawGameOver();
