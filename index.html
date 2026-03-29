@@ -211,21 +211,14 @@ let obstacles3 = []; // препятствия для игрока 3
 let exitBtn = {};
 
   function spawnObstacle1() {
-  if (!player.isWatching) {  // ❌ не спавнить в режиме наблюдения
-    obstacles2.push({ x: lane1, z: 1 });
-  }
+  if (!player.isWatching) obstacles1.push({ x: lane1, z: 1 });
 }
-
 function spawnObstacle2() {
-  if (!player.isWatching) {  // ❌ не спавнить в режиме наблюдения
-    obstacles2.push({ x: lane2, z: 1 });
-  }
+  if (!player.isWatching) obstacles2.push({ x: lane2, z: 1 });
 }
-
 function spawnObstacle3() {
-  if (!player.isWatching) {  // ❌ не спавнить в режиме наблюдения
-    obstacles2.push({ x: lane3, z: 1 });
-  }
+  if (!player.isWatching) obstacles3.push({ x: lane3, z: 1 });
+}
 }
 
   function jump() {
@@ -303,25 +296,37 @@ function spawnObstacle3() {
 
   function updatePlayer() {
     
-  if (player.gameOver || player.isWatching) return;
+  if (!player.gameOver) {
   player.dy += player.gravity;
   player.y += player.dy;
-    
-    if (player.y >= canvas.height - 150) {
-      player.y = canvas.height - 150;
-      player.dy = 0;
-      player.grounded = true;
-    }
+}
+
+if (player.y >= canvas.height - 150) {
+  player.y = canvas.height - 150;
+  player.dy = 0;
+  player.grounded = true;
+}
   }
 
-  function spawnObstacle1() {
-  if (!player.isWatching) obstacles1.push({ x: lane1, z: 1 });
+  function updateObstacles1() {
+  obstacles1.forEach(o => {
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
+  });
+  obstacles1 = obstacles1.filter(o => o.z > 0);
 }
-function spawnObstacle2() {
-  if (!player.isWatching) obstacles2.push({ x: lane2, z: 1 });
+
+function updateObstacles2() {
+  obstacles2.forEach(o => {
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
+  });
+  obstacles2 = obstacles2.filter(o => o.z > 0);
 }
-function spawnObstacle3() {
-  if (!player.isWatching) obstacles3.push({ x: lane3, z: 1 });
+
+function updateObstacles3() {
+  obstacles3.forEach(o => {
+    o.z -= gameSpeed + (1 - o.z) * 0.015;
+  });
+  obstacles3 = obstacles3.filter(o => o.z > 0);
 }
 
   function drawRoad() {
