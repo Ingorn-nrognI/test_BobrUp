@@ -211,6 +211,8 @@ let gameSpeed = 0.008;
 let isWatching1 = false;  // левая полоса
 let isWatching2 = false;  // средняя полоса (игрок)
 let isWatching3 = false;  // правая полоса
+  // Для хранения бревна, в которое врезался игрок
+let frozenObstacle = null;
   
   // Кнопки для Game Over
   let exitBtn = {x: 0, y: 0, w: 0, h: 0};
@@ -249,6 +251,7 @@ function spawnObstacle3() {
   player.gameOver = false;
   player.dy = 0;
   player.grounded = true;
+  obstacles2 = [];
 }
       // кнопка ВЫЙТИ
       if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
@@ -352,6 +355,12 @@ function updateObstacles3() {
   }
 
   function drawObstacles2() {
+  // Если есть замороженное бревно - рисуем его
+  if (frozenObstacle && isWatching2) {
+    ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
+  }
+  // Рисуем остальные бревна (только если не в режиме наблюдателя)
+  if (!isWatching2) {
     obstacles2.forEach(o => {
       let scale = 1 - o.z;
       let size = 60 * scale;
@@ -359,15 +368,22 @@ function updateObstacles3() {
       let y = 100 + (canvas.height - 200) * scale;
 
       ctx.drawImage(log, x, y, size, size);
-
-      // В drawObstacles2() (средняя полоса, где игрок):
-if (!player.gameOver && !isWatching2 && scale > 0.85 &&
-    player.x < x + size && player.x + player.width > x &&
-    player.y < y + size && player.y + player.height > y) {
-  player.gameOver = true;
-}
+      
+      if (!player.gameOver && !isWatching2 && scale > 0.85 &&
+          player.x < x + size && player.x + player.width > x &&
+          player.y < y + size && player.y + player.height > y) {
+        
+        frozenObstacle = {
+          x: x,
+          y: y,
+          size: size,
+          scale: scale
+        };
+        player.gameOver = true;
+      }
     });
   }
+}
 
   function drawObstacles3() {
     obstacles3.forEach(o => {
