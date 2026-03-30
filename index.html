@@ -282,8 +282,8 @@ function initGame() {
     width: 60,
     height: 60,
     dy: 0,
-    gravity: 0.8,
-    jump: -15,
+    gravity: 0.6,
+jump: -13,
     grounded: true,
     gameOver: false,
     gameOverText: "Ты врезался!"
@@ -421,8 +421,8 @@ function spawnObstacle3() {
   function updatePlayer() {
   // ЕСЛИ ИГРОК НАБЛЮДАЕТ - НЕ ОБНОВЛЯЕМ ЕГО ФИЗИКУ
   if (!player.gameOver && gameStarted) {
-    player.dy += player.gravity;
-    player.y += player.dy;
+    player.dy += player.gravity * deltaTime;
+player.y += player.dy * deltaTime;
   }
   
   if (player.y >= canvas.height - 150) {
@@ -710,7 +710,10 @@ let countdown = setInterval(() => {
     showStartText = true;
   }
 
-  if (startTimer < -1) {
+  let countdown = setInterval(() => {
+  startTimer--;
+    
+  if (startTimer < 0) {
   clearInterval(countdown);
 
   // 🔥 ОЧИЩАЕМ ВСЕ БРЕВНА
