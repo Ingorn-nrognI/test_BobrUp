@@ -494,7 +494,8 @@ function updateObstacles3() {
   }
   
   if (!player.gameOver && !isWatching2) {
-    obstacles2.forEach(o => {
+    for (let i = 0; i < obstacles2.length; i++) {
+      let o = obstacles2[i];
       let scale = 1 - o.z;
       let size = 60 * scale;
       let x = canvas.width / 2 + (lane2 - canvas.width / 2) * scale - size/2;
@@ -502,37 +503,34 @@ function updateObstacles3() {
 
       ctx.drawImage(log, x, y, size, size);
       
-      // ❗ 1. СНАЧАЛА проверка столкновения
+      // ПРОВЕРКА СТОЛКНОВЕНИЯ (СНАЧАЛА!)
       if (scale > 0.85 &&
           player.x < x + size && player.x + player.width > x &&
           player.y < y + size && player.y + player.height > y) {
-
+        
         frozenObstacle = { x: x, y: y, size: size };
-
         player.frozenX = player.x;
         player.frozenY = player.y;
-
         obstacles2 = [];
         player.gameOverText = "Ты врезался! Счёт: " + score;
         saveBestScore(score);
-
         player.gameOver = true;
-        return;
+        return; // Выходим, очки за это бревно НЕ начисляем
       }
-
-      // ❗ 2. ОЧКИ ТОЛЬКО ЕСЛИ ПЕРЕПРЫГНУЛ
-      if (!o.passed && o.z < 0.2) {
+      
+      // НАЧИСЛЕНИЕ ОЧКОВ (только если не врезался)
+      if (!o.passed && o.z < 0.2 && !player.gameOver) {
         o.passed = true;
-
-        // 👇 ключевая логика
-        if (!player.grounded && !player.gameOver) {
+        
+        // Очки только когда игрок в воздухе (перепрыгнул)
+        if (!player.grounded) {
           score++;
         }
       }
-    });
+    }
   }
 }
-
+  
   function drawObstacles3() {
     obstacles3.forEach(o => {
       let scale = 1 - o.z;
