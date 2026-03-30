@@ -97,11 +97,6 @@ body {
 }
 
 /* Canvas для игры */
-#game {
-  display: none;
-  background: #87CEEB;
-}
-
 #menu {
   position: fixed;
   top: 0;
@@ -116,6 +111,7 @@ body {
 }
 
 #game {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -162,6 +158,36 @@ body {
 #leaderboardContent {
   font-size: 18px;
   line-height: 1.5;
+}
+
+/* Принудительное восстановление меню */
+.menu-reset {
+  background: linear-gradient(135deg, #2c3e50, #1a472a) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 10 !important;
+}
+
+.menu-reset .main {
+  font-size: 24px !important;
+  color: white !important;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.menu-reset .top-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  padding: 15px !important;
+  color: white !important;
+  font-size: 18px !important;
 }
 </style>
 </head>
@@ -286,32 +312,35 @@ function openSettings() {
 function initGame() {
   
   function fullResetMenu() {
-  // Полностью очищаем inline-стили с body
+  // Полностью очищаем inline-стили
   document.body.removeAttribute("style");
   
-  // Полностью очищаем inline-стили с menu
   const menu = document.getElementById("menu");
   menu.removeAttribute("style");
   
-  // Полностью очищаем inline-стили с top-bar
   const topBar = document.querySelector(".top-bar");
   if (topBar) topBar.removeAttribute("style");
   
-  // Полностью очищаем inline-стили с main
   const mainDiv = document.querySelector(".main");
   if (mainDiv) mainDiv.removeAttribute("style");
   
-  // Полностью очищаем inline-стили с bottom-bar
   const bottomBar = document.querySelector(".bottom-bar");
   if (bottomBar) bottomBar.removeAttribute("style");
   
-  // Полностью очищаем inline-стили со всех bottom-btn
   const btns = document.querySelectorAll(".bottom-btn");
   btns.forEach(btn => btn.removeAttribute("style"));
   
   // Восстанавливаем display
   menu.style.display = "flex";
   document.getElementById("game").style.display = "none";
+  
+  // Принудительно применяем CSS класс для восстановления
+  menu.classList.add("menu-reset");
+  
+  // Удаляем класс через небольшую задержку
+  setTimeout(() => {
+    menu.classList.remove("menu-reset");
+  }, 100);
 }
   // Защита от повторного запуска
   if (window.gameInitialized) return;
@@ -319,6 +348,22 @@ function initGame() {
   
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
+
+  // === НАСТРОЙКИ ДОРОГИ ===
+  const roadLeft = 0.15;   // левый край дороги
+  const roadRight = 0.85;  // правый край дороги
+  const laneOffset = 0.2;  // расстояние от центра до боковых полос
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // === НАСТРОЙКИ ДОРОГИ ===
+  const roadLeft = 0.15;   // левый край дороги
+  const roadRight = 0.85;  // правый край дороги
+  const laneOffset = 0.2;  // расстояние от центра до боковых полос
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
   // === НАСТРОЙКИ ДОРОГИ ===
   const roadLeft = 0.15;   // левый край дороги
