@@ -366,7 +366,7 @@ function spawnObstacle3() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-   if (showExitButton && 
+  if (showExitButton && 
       x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
       y > exitToMenuBtn.y && y < exitToMenuBtn.y + exitToMenuBtn.h) {
     // Очищаем интервалы
@@ -374,8 +374,44 @@ function spawnObstacle3() {
     clearInterval(spawnInterval2);
     clearInterval(spawnInterval3);
     window.gameInitialized = false;
-    document.getElementById("menu").style.display = "flex";
-    document.getElementById("game").style.display = "none";
+    
+    // ВОССТАНАВЛИВАЕМ МЕНЮ
+    const menu = document.getElementById("menu");
+    menu.style.display = "flex";
+    menu.style.flexDirection = "column";
+    menu.style.justifyContent = "space-between";
+    
+    // Восстанавливаем верхнюю панель
+    const topBar = document.querySelector(".top-bar");
+    if (topBar) {
+      topBar.style.display = "flex";
+      topBar.style.justifyContent = "space-between";
+      topBar.style.width = "100%";
+    }
+    
+    // Восстанавливаем центральный текст
+    const mainDiv = document.querySelector(".main");
+    if (mainDiv) {
+      mainDiv.style.display = "flex";
+      mainDiv.style.flex = "1";
+      mainDiv.style.alignItems = "center";
+      mainDiv.style.justifyContent = "center";
+    }
+    
+    // Восстанавливаем нижнюю панель
+    const bottomBar = document.querySelector(".bottom-bar");
+    if (bottomBar) {
+      bottomBar.style.display = "flex";
+      bottomBar.style.justifyContent = "space-around";
+      bottomBar.style.position = "fixed";
+      bottomBar.style.bottom = "20px";
+      bottomBar.style.left = "50%";
+      bottomBar.style.transform = "translateX(-50%)";
+    }
+    
+    const game = document.getElementById("game");
+    game.style.display = "none";
+    
     return;
   }
     if (player.gameOver) {
