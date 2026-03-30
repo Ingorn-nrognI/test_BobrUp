@@ -417,144 +417,6 @@ function spawnObstacle2() {
 function spawnObstacle3() {
   if (!isWatching3) obstacles3.push({ x: lane3, z: 1 });
 }
-
-  // ИГРА
-// ========================
-function initGame() {
-  
-  function fullResetMenu() {
-  // Полностью очищаем inline-стили с body
-  document.body.removeAttribute("style");
-  
-  // Полностью очищаем inline-стили с menu
-  const menu = document.getElementById("menu");
-  menu.removeAttribute("style");
-  
-  // Полностью очищаем inline-стили с top-bar
-  const topBar = document.querySelector(".top-bar");
-  if (topBar) topBar.removeAttribute("style");
-  
-  // Полностью очищаем inline-стили с main
-  const mainDiv = document.querySelector(".main");
-  if (mainDiv) mainDiv.removeAttribute("style");
-  
-  // Полностью очищаем inline-стили с bottom-bar
-  const bottomBar = document.querySelector(".bottom-bar");
-  if (bottomBar) bottomBar.removeAttribute("style");
-  
-  // Полностью очищаем inline-стили со всех bottom-btn
-  const btns = document.querySelectorAll(".bottom-btn");
-  btns.forEach(btn => btn.removeAttribute("style"));
-  
-  // Восстанавливаем display
-  menu.style.display = "flex";
-  document.getElementById("game").style.display = "none";
-}
-  // Защита от повторного запуска
-  if (window.gameInitialized) return;
-  window.gameInitialized = true;
-  
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
-
-  // === НАСТРОЙКИ ДОРОГИ ===
-  const roadLeft = 0.15;   // левый край дороги
-  const roadRight = 0.85;  // правый край дороги
-  const laneOffset = 0.2;  // расстояние от центра до боковых полос
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  // Картинки
-  const beaver = new Image();
-  beaver.src = "beaver.png";
-  beaver.onerror = () => console.log("Ошибка загрузки beaver.png");
-
-  const log = new Image();
-  log.src = "log.png";
-  log.onerror = () => console.log("Ошибка загрузки log.png");
-
-  // Игрок
-  let player = {
-    x: canvas.width / 2 - 30,
-    y: canvas.height - 150,
-    width: 60,
-    height: 60,
-    dy: 0,
-    gravity: 0.6,
-jump: -13,
-    grounded: true,
-    gameOver: false,
-    gameOverText: "Ты врезался!"
-  };
-
-  // Полосы на дороге
-  const roadCenter = (roadLeft + roadRight) / 2;
-  const lane1 = canvas.width * (roadCenter - laneOffset);
-  const lane2 = canvas.width * roadCenter;
-  const lane3 = canvas.width * (roadCenter + laneOffset);
-
-  // Устанавливаем текущему игроку среднюю полосу
-  player.x = lane2 - player.width / 2;
-
- // Обработчик изменения размера экрана
-  window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    // Пересчитываем координаты полос
-    const newLane2 = canvas.width * roadCenter;
-    
-    // Обновляем позицию игрока
-    player.x = newLane2 - player.width / 2;
-  });
-
-  // Препятствия
-let obstacles1 = [];
-let obstacles2 = [];
-let obstacles3 = [];
-let gameSpeed = 0.008;
-let lastTime = performance.now();
-let deltaTime = 1; // 👈 ДОБАВИТЬ ЭТО
-let score = 0;
-let gameStarted = false;   // игра ещё не началась
-let startTimer = 3;        // таймер
-let showStartText = true;  // показывать ли START
-// Флаги для каждой полосы (кто в режиме наблюдателя)
-let isWatching1 = false;  // левая полоса
-let isWatching2 = false;  // средняя полоса (игрок)
-let isWatching3 = false;  // правая полоса
-  
-  // Для хранения бревна, в которое врезался игрок
-let frozenObstacle = null;
-  
-  // Кнопки для Game Over
-  let exitBtn = {x: 0, y: 0, w: 0, h: 0};
-  let watchBtn = {x: 0, y: 0, w: 0, h: 0};
-
-    // Кнопка выхода в правом нижнем углу (для наблюдателя)
-  let exitToMenuBtn = {x: 0, y: 0, w: 0, h: 0};
-  let showExitButton = false;
-
-  function spawnObstacle1() {
-  if (!isWatching1) obstacles1.push({ x: lane1, z: 1 });
-}
-
-function spawnObstacle2() {
-  if (!isWatching2) obstacles2.push({ x: lane2, z: 1, passed: false });
-}
-
-function spawnObstacle3() {
-  if (!isWatching3) obstacles3.push({ x: lane3, z: 1 });
-}
-
-  function jump() {
-    if (player.grounded && !player.gameOver) {
-      player.dy = player.jump;
-      player.grounded = false;
-    }
-  }
-
     // Обработчики событий
   canvas.addEventListener("click", (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -592,6 +454,42 @@ function spawnObstacle3() {
         showExitButton = true;
       }
       // кнопка ВЫЙТИ
+      if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
+          y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
+        location.reload();
+      }
+      return;
+    }
+       jump();
+  });
+
+  canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    if (showExitButton && 
+        x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
+        y > exitToMenuBtn.y && y < exitToMenuBtn.y + exitToMenuBtn.h) {
+      clearInterval(spawnInterval1);
+      clearInterval(spawnInterval2);
+      clearInterval(spawnInterval3);
+      window.gameInitialized = false;
+      fullResetMenu();
+      return;
+    }
+
+    if (player.gameOver) {
+      if (x > watchBtn.x && x < watchBtn.x + watchBtn.w &&
+          y > watchBtn.y && y < watchBtn.y + watchBtn.h) {
+        isWatching2 = true;
+        player.gameOver = false;
+        player.dy = 0;
+        player.grounded = true;
+        showExitButton = true;
+      }
       if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
           y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
         location.reload();
@@ -910,6 +808,7 @@ ctx.fillText("Score: " + score, 20, 40);
   // Запуск игрового цикла
   requestAnimationFrame(loop);
 }
+  }
 </script>
 
 
