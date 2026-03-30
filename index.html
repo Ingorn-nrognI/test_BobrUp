@@ -255,6 +255,10 @@ function openSettings() {
 // ИГРА
 // ========================
 function initGame() {
+  // Защита от повторного запуска
+  if (window.gameInitialized) return;
+  window.gameInitialized = true;
+  
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
@@ -297,6 +301,18 @@ jump: -13,
 
   // Устанавливаем текущему игроку среднюю полосу
   player.x = lane2 - player.width / 2;
+
+ // Обработчик изменения размера экрана
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Пересчитываем координаты полос
+    const newLane2 = canvas.width * roadCenter;
+    
+    // Обновляем позицию игрока
+    player.x = newLane2 - player.width / 2;
+  });
 
   // Препятствия
 let obstacles1 = [];
@@ -350,9 +366,14 @@ function spawnObstacle3() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (showExitButton && 
+   if (showExitButton && 
       x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
       y > exitToMenuBtn.y && y < exitToMenuBtn.y + exitToMenuBtn.h) {
+    // Очищаем интервалы
+    clearInterval(spawnInterval1);
+    clearInterval(spawnInterval2);
+    clearInterval(spawnInterval3);
+    window.gameInitialized = false;
     document.getElementById("menu").style.display = "flex";
     document.getElementById("game").style.display = "none";
     return;
@@ -382,7 +403,7 @@ function spawnObstacle3() {
     jump();
   });
   
-  canvas.addEventListener("touchstart", (e) => {
+    canvas.addEventListener("touchstart", (e) => {
   e.preventDefault();
   const touch = e.touches[0];
   const rect = canvas.getBoundingClientRect();
@@ -392,6 +413,11 @@ function spawnObstacle3() {
     if (showExitButton && 
       x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
       y > exitToMenuBtn.y && y < exitToMenuBtn.y + exitToMenuBtn.h) {
+    // Очищаем интервалы
+    clearInterval(spawnInterval1);
+    clearInterval(spawnInterval2);
+    clearInterval(spawnInterval3);
+    window.gameInitialized = false;
     document.getElementById("menu").style.display = "flex";
     document.getElementById("game").style.display = "none";
     return;
@@ -615,25 +641,9 @@ function drawGameOver() {
     const boxX = canvas.width / 2 - boxWidth / 2;
     const boxY = canvas.height / 2 - boxHeight / 2;
 
-    // функция рисования закругленного прямоугольника
-    function roundRect(x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-      ctx.fill();
-    }
-
     // рисуем окно
     ctx.fillStyle = "rgba(0,0,0,0.7)";
-    roundRect(boxX, boxY, boxWidth, boxHeight, 25);
+    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 25);
 
     // ТЕКСТ
     ctx.fillStyle = "#fff";
@@ -650,7 +660,7 @@ function drawGameOver() {
     watchBtn = { x: watchX, y: watchY, w: btnWidth, h: btnHeight };
 
     ctx.fillStyle = "#28a745";
-    roundRect(watchX, watchY, btnWidth, btnHeight, 15);
+    roundRect(ctx, watchX, watchY, btnWidth, btnHeight, 15);
     ctx.fillStyle = "#fff";
     ctx.font = "16px Arial";
     ctx.fillText("Смотреть", watchX + btnWidth/2, watchY + 25);
@@ -660,7 +670,7 @@ function drawGameOver() {
     exitBtn = { x: exitX, y: exitY, w: btnWidth, h: btnHeight };
 
     ctx.fillStyle = "#dc3545";
-    roundRect(exitX, exitY, btnWidth, btnHeight, 15);
+    roundRect(ctx, exitX, exitY, btnWidth, btnHeight, 15);
     ctx.fillStyle = "#fff";
     ctx.fillText("Выйти", exitX + btnWidth/2, exitY + 25);
   }
@@ -683,8 +693,8 @@ function drawGameOver() {
   function loop(currentTime) {
   deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
 
-// защита от скачков FPS
-if (deltaTime > 3) deltaTime = 1;
+// Защита от скачков FPS (и слишком маленьких, и слишком больших)
+deltaTime = Math.min(2, Math.max(0.5, deltaTime));
 
   lastTime = currentTime;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -719,9 +729,9 @@ ctx.fillText("Score: " + score, 20, 40);
   }
 
   // Запуск спавна препятствий
-  setInterval(spawnObstacle1, 1200);
-  setInterval(spawnObstacle2, 1500);
-  setInterval(spawnObstacle3, 1800);
+  let spawnInterval1 = setInterval(spawnObstacle1, 1200);
+  let spawnInterval2 = setInterval(spawnObstacle2, 1500);
+  let spawnInterval3 = setInterval(spawnObstacle3, 1800);
 
     // Таймер перед стартом
   let countdown = setInterval(() => {
