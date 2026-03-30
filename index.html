@@ -95,8 +95,7 @@ body {
 .bottom-btn:hover {
   background: #555;
 }
-
-/* Canvas для игры */
+/* Меню */
 #menu {
   position: fixed;
   top: 0;
@@ -109,7 +108,7 @@ body {
   z-index: 10;
   overflow-y: auto;
 }
-
+/* Canvas для игры */
 #game {
   display: none;
   position: fixed;
@@ -348,22 +347,6 @@ function initGame() {
   
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
-
-  // === НАСТРОЙКИ ДОРОГИ ===
-  const roadLeft = 0.15;   // левый край дороги
-  const roadRight = 0.85;  // правый край дороги
-  const laneOffset = 0.2;  // расстояние от центра до боковых полос
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  // === НАСТРОЙКИ ДОРОГИ ===
-  const roadLeft = 0.15;   // левый край дороги
-  const roadRight = 0.85;  // правый край дороги
-  const laneOffset = 0.2;  // расстояние от центра до боковых полос
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
 
   // === НАСТРОЙКИ ДОРОГИ ===
   const roadLeft = 0.15;   // левый край дороги
