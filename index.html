@@ -488,13 +488,11 @@ function updateObstacles3() {
   }
 
   function drawObstacles2() {
-  // Рисуем замороженное бревно (если есть) - ВСЕГДА рисуем
+  // Рисуем замороженное бревно
   if (frozenObstacle) {
-    console.log("Рисую frozenObstacle:", frozenObstacle);
     ctx.drawImage(log, frozenObstacle.x, frozenObstacle.y, frozenObstacle.size, frozenObstacle.size);
   }
   
-  // Рисуем движущиеся бревна только если игрок не в Game Over И не в режиме наблюдателя
   if (!player.gameOver && !isWatching2) {
     obstacles2.forEach(o => {
       let scale = 1 - o.z;
@@ -504,30 +502,32 @@ function updateObstacles3() {
 
       ctx.drawImage(log, x, y, size, size);
       
-if (!o.passed && o.z < 0.2) {
-  o.passed = true;
-  score++;
-}
-      // Проверка столкновения
+      // ❗ 1. СНАЧАЛА проверка столкновения
       if (scale > 0.85 &&
           player.x < x + size && player.x + player.width > x &&
           player.y < y + size && player.y + player.height > y) {
-        
-        // Сохраняем бревно с ТОЧНЫМИ координатами
-        frozenObstacle = {
-          x: x,
-          y: y,
-          size: size,
-          scale: scale
-        };
 
-         player.frozenX = player.x;  // запоминаем позицию игрока
-  player.frozenY = player.y;  // запоминаем позицию игрока
-        obstacles2 = [];  // Очищаем все бревна
+        frozenObstacle = { x, y, size };
+
+        player.frozenX = player.x;
+        player.frozenY = player.y;
+
+        obstacles2 = [];
         player.gameOverText = "Ты врезался! Счёт: " + score;
-saveBestScore(score);
-        if (score <= 0) return;
+        saveBestScore(score);
+
         player.gameOver = true;
+        return;
+      }
+
+      // ❗ 2. ОЧКИ ТОЛЬКО ЕСЛИ ПЕРЕПРЫГНУЛ
+      if (!o.passed && o.z < 0.2) {
+        o.passed = true;
+
+        // 👇 ключевая логика
+        if (!player.grounded && !player.gameOver) {
+          score++;
+        }
       }
     });
   }
@@ -690,7 +690,9 @@ ctx.fillText("Score: " + score, 20, 40);
     
     drawExitButton();
     
-    gameSpeed += 0.00001 * deltaTime;
+    if (gameStarted) {
+  gameSpeed += 0.00001 * deltaTime;
+}
     
     requestAnimationFrame(loop);
   }
@@ -709,10 +711,16 @@ let countdown = setInterval(() => {
   }
 
   if (startTimer < -1) {
-    clearInterval(countdown);
-    gameStarted = true;
-    showStartText = false;
-  }
+  clearInterval(countdown);
+
+  // 🔥 ОЧИЩАЕМ ВСЕ БРЕВНА
+  obstacles1 = [];
+  obstacles2 = [];
+  obstacles3 = [];
+
+  gameStarted = true;
+  showStartText = false;
+}
 }, 1000);
   
   // Запуск игрового цикла
