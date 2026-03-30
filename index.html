@@ -299,11 +299,27 @@ async function saveBestScore(score) {
   const name = document.getElementById("nickname").innerText;
 
   try {
-    await db.collection("leaderboard").add({
-      name: name,
-      score: score,
-      date: Date.now()
-    });
+    // Сначала ищем игрока по имени
+    const snapshot = await db.collection("leaderboard")
+                             .where("name", "==", name)
+                             .get();
+
+    if (!snapshot.empty) {
+      // Игрок уже есть, проверяем рекорд
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (score > data.score) {
+          doc.ref.update({ score: score, date: Date.now() });
+        }
+      });
+    } else {
+      // Игрока нет → создаем запись
+      await db.collection("leaderboard").add({
+        name: name,
+        score: score,
+        date: Date.now()
+      });
+    }
   } catch (e) {
     console.error("Ошибка записи:", e);
   }
