@@ -302,7 +302,8 @@ function initGame() {
 let obstacles1 = [];
 let obstacles2 = [];
 let obstacles3 = [];
-let gameSpeed = 0.008; 
+let gameSpeed = 0.008;
+let lastTime = performance.now(); 
 let score = 0;
 // Флаги для каждой полосы (кто в режиме наблюдателя)
 let isWatching1 = false;  // левая полоса
@@ -430,7 +431,7 @@ function spawnObstacle3() {
   function updateObstacles1() {
   if (!isWatching1) {
     obstacles1.forEach(o => {
-      o.z -= gameSpeed + (1 - o.z) * 0.015;
+      o.z -= (gameSpeed + (1 - o.z) * 0.015) * deltaTime;
     });
     obstacles1 = obstacles1.filter(o => o.z > 0);
   }
@@ -439,7 +440,7 @@ function spawnObstacle3() {
 function updateObstacles2() {
   if (!isWatching2) {
     obstacles2.forEach(o => {
-      o.z -= gameSpeed + (1 - o.z) * 0.015;
+      o.z -= (gameSpeed + (1 - o.z) * 0.015) * deltaTime;
     });
     obstacles2 = obstacles2.filter(o => o.z > 0);
   }
@@ -448,7 +449,7 @@ function updateObstacles2() {
 function updateObstacles3() {
   if (!isWatching3) {
     obstacles3.forEach(o => {
-      o.z -= gameSpeed + (1 - o.z) * 0.015;
+      o.z -= (gameSpeed + (1 - o.z) * 0.015) * deltaTime;
     });
     obstacles3 = obstacles3.filter(o => o.z > 0);
   }
@@ -639,7 +640,9 @@ function drawGameOver() {
     ctx.fillText("Выйти", exitX + btnWidth/2, exitY + 25);
   }
 
-  function loop() {
+  function loop(currentTime) {
+  const deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
+  lastTime = currentTime;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawRoad();
     updatePlayer();
@@ -652,6 +655,7 @@ function drawGameOver() {
     drawPlayer();
     ctx.fillStyle = "#fff";
 ctx.font = "20px Arial";
+ctx.textAlign = "left";   // 👈 ВАЖНО: фикс выравнивания
 ctx.fillText("Score: " + score, 20, 40);
     
     if (player.gameOver) {
@@ -660,7 +664,7 @@ ctx.fillText("Score: " + score, 20, 40);
     
     drawExitButton();
     
-    gameSpeed += 0.00001;
+    gameSpeed += 0.00001 * deltaTime;
     requestAnimationFrame(loop);
   }
 
