@@ -702,25 +702,22 @@ ctx.fillText("Score: " + score, 20, 40);
   setInterval(spawnObstacle2, 1500);
   setInterval(spawnObstacle3, 1800);
 
-  // Таймер перед стартом (ТОЛЬКО 1 РАЗ!)
-let countdown = setInterval(() => {
-  startTimer--;
-
+    // Таймер перед стартом
   let countdown = setInterval(() => {
-  startTimer--;
+    startTimer--;
     
-  if (startTimer < 0) {
-  clearInterval(countdown);
-
-  // 🔥 ОЧИЩАЕМ ВСЕ БРЕВНА
-  obstacles1 = [];
-  obstacles2 = [];
-  obstacles3 = [];
-
-  gameStarted = true;
-  showStartText = false;
-}
-}, 1000);
+    if (startTimer < 0) {
+      clearInterval(countdown);
+      
+      // ОЧИЩАЕМ ВСЕ БРЕВНА
+      obstacles1 = [];
+      obstacles2 = [];
+      obstacles3 = [];
+      
+      gameStarted = true;
+      showStartText = false;
+    }
+  }, 1000);
   
   // Запуск игрового цикла
   requestAnimationFrame(loop);
