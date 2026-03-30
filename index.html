@@ -417,8 +417,18 @@ function spawnObstacle2() {
 function spawnObstacle3() {
   if (!isWatching3) obstacles3.push({ x: lane3, z: 1 });
 }
+function jump() {
+  console.log("jump called, grounded:", player.grounded, "gameOver:", player.gameOver, "gameStarted:", gameStarted);
+  
+  if (player.grounded && !player.gameOver) {
+      player.dy = player.jump;
+      player.grounded = false;
+      console.log("jump executed!");
+    }
+  }
     // Обработчики событий
-  canvas.addEventListener("click", (e) => {
+    canvas.addEventListener("click", (e) => {
+    console.log("click detected");
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -437,6 +447,7 @@ function spawnObstacle3() {
       
       return;
     }
+    console.log("click detected, player.gameOver:", player.gameOver, "gameStarted:", gameStarted);
     
     if (player.gameOver) {
       // кнопка СМОТРЕТЬ
