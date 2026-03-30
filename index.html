@@ -303,7 +303,8 @@ let obstacles1 = [];
 let obstacles2 = [];
 let obstacles3 = [];
 let gameSpeed = 0.008;
-let lastTime = performance.now(); 
+let lastTime = performance.now();
+let deltaTime = 1; // 👈 ДОБАВИТЬ ЭТО
 let score = 0;
 // Флаги для каждой полосы (кто в режиме наблюдателя)
 let isWatching1 = false;  // левая полоса
@@ -642,6 +643,10 @@ function drawGameOver() {
 
   function loop(currentTime) {
   const deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
+
+// защита от скачков FPS
+if (deltaTime > 3) deltaTime = 1;
+
   lastTime = currentTime;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawRoad();
@@ -674,7 +679,7 @@ ctx.fillText("Score: " + score, 20, 40);
   setInterval(spawnObstacle3, 1800);
   
   // Запуск игрового цикла
-  loop();
+  requestAnimationFrame(loop);
 }
 </script>
 
