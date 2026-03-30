@@ -222,7 +222,22 @@ body {
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
+  const firebaseConfig = {
+  apiKey: "AIzaSyCxJb69UOCu38RvSbJVnf6jtD8VYDVHPD4",
+  authDomain: "web3-bobrup.firebaseapp.com",
+  projectId: "web3-bobrup",
+  storageBucket: "web3-bobrup.firebasestorage.app",
+  messagingSenderId: "947085067200",
+  appId: "1:947085067200:web:35299668725de1c965be25",
+  measurementId: "G-HPXPGC87TB"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+  
 // Получаем ник из Telegram
 if (window.Telegram && Telegram.WebApp) {
   const user = Telegram.WebApp.initDataUnsafe.user;
@@ -244,20 +259,38 @@ function startGame() {
   initGame();
 }
 
-function openLeaderboard() {
-  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-
+async function openLeaderboard() {
   const contentDiv = document.getElementById("leaderboardContent");
-  contentDiv.innerHTML = ""; // очищаем перед заполнением
+  contentDiv.innerHTML = "Загрузка...";
 
-  if (leaderboard.length === 0) {
-    contentDiv.innerHTML = "<p>Пока нет рекордов</p>";
-  } else {
-    leaderboard.slice(0, 10).forEach((p, index) => {
+  try {
+    const q = query(
+      collection(db, "leaderboard"),
+      orderBy("score", "desc"),
+      limit(10)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    contentDiv.innerHTML = "";
+
+    let index = 1;
+
+    querySnapshot.forEach((doc) => {
+      const p = doc.data();
       const row = document.createElement("div");
-      row.textContent = `${index + 1}. ${p.name} — ${p.score}`;
+      row.textContent = `${index}. ${p.name} — ${p.score}`;
       contentDiv.appendChild(row);
+      index++;
     });
+
+    if (index === 1) {
+      contentDiv.innerHTML = "<p>Пока нет рекордов</p>";
+    }
+
+  } catch (e) {
+    contentDiv.innerHTML = "Ошибка загрузки";
+    console.error(e);
   }
 
   document.getElementById("leaderboardModal").style.display = "block";
@@ -267,28 +300,17 @@ function closeLeaderboard() {
   document.getElementById("leaderboardModal").style.display = "none";
 }
 
-function saveBestScore(score) {
+async function saveBestScore(score) {
   const name = document.getElementById("nickname").innerText;
 
-  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-
-  let player = leaderboard.find(p => p.name === name);
-
-  if (player) {
-    if (score > player.score) {
-      player.score = score;
-    }
-  } else {
-    leaderboard.push({ name: name, score: score });
-  }
-
-  leaderboard.sort((a, b) => b.score - a.score);
-
-  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-
-  // Если таблица открыта — обновляем её автоматически
-  if (document.getElementById("leaderboardModal").style.display === "block") {
-    openLeaderboard();
+  try {
+    await db.collection("leaderboard").add({
+      name: name,
+      score: score,
+      date: Date.now()
+    });
+  } catch (e) {
+    console.error("Ошибка записи:", e);
   }
 }
   
