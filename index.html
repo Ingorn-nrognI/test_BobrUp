@@ -336,10 +336,10 @@ function initGame() {
   // Принудительно применяем CSS класс для восстановления
   menu.classList.add("menu-reset");
   
-  // Удаляем класс через небольшую задержку
-  setTimeout(() => {
+  // Минимальная задержка (один кадр) - незаметно для пользователя
+  requestAnimationFrame(() => {
     menu.classList.remove("menu-reset");
-  }, 100);
+  });
 }
   // Защита от повторного запуска
   if (window.gameInitialized) return;
