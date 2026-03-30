@@ -405,7 +405,7 @@ function spawnObstacle3() {
       player.gameOver = false;
       player.dy = 0;
       player.grounded = true;
-      showExitButton = true
+      showExitButton = true;
       // obstacles2 уже очищен при столкновении, так что ничего не делаем
     }
     // кнопка ВЫЙТИ
@@ -507,7 +507,7 @@ function updateObstacles3() {
           player.x < x + size && player.x + player.width > x &&
           player.y < y + size && player.y + player.height > y) {
 
-        frozenObstacle = { x, y, size };
+        frozenObstacle = { x: x, y: y, size: size };
 
         player.frozenX = player.x;
         player.frozenY = player.y;
@@ -558,6 +558,20 @@ function updateObstacles3() {
     ctx.drawImage(beaver, player.x, player.y, player.width, player.height);
   }
 }
+  function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+}
 // Сначала функция drawExitButton (отдельно)
 function drawExitButton() {
   if (!showExitButton) return;
@@ -573,7 +587,16 @@ function drawExitButton() {
   
   ctx.fillStyle = "#dc3545";
   ctx.beginPath();
-  ctx.roundRect(btnX, btnY, btnWidth, btnHeight, 10);
+  ctx.moveTo(btnX + 10, btnY);
+  ctx.lineTo(btnX + btnWidth - 10, btnY);
+  ctx.quadraticCurveTo(btnX + btnWidth, btnY, btnX + btnWidth, btnY + 10);
+  ctx.lineTo(btnX + btnWidth, btnY + btnHeight - 10);
+  ctx.quadraticCurveTo(btnX + btnWidth, btnY + btnHeight, btnX + btnWidth - 10, btnY + btnHeight);
+  ctx.lineTo(btnX + 10, btnY + btnHeight);
+  ctx.quadraticCurveTo(btnX, btnY + btnHeight, btnX, btnY + btnHeight - 10);
+  ctx.lineTo(btnX, btnY + 10);
+  ctx.quadraticCurveTo(btnX, btnY, btnX + 10, btnY);
+  ctx.closePath();
   ctx.fill();
   
   ctx.fillStyle = "#fff";
