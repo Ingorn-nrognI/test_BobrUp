@@ -306,6 +306,9 @@ let gameSpeed = 0.008;
 let lastTime = performance.now();
 let deltaTime = 1; // 👈 ДОБАВИТЬ ЭТО
 let score = 0;
+let gameStarted = false;   // игра ещё не началась
+let startTimer = 3;        // таймер
+let showStartText = true;  // показывать ли START
 // Флаги для каждой полосы (кто в режиме наблюдателя)
 let isWatching1 = false;  // левая полоса
 let isWatching2 = false;  // средняя полоса (игрок)
@@ -417,7 +420,7 @@ function spawnObstacle3() {
 
   function updatePlayer() {
   // ЕСЛИ ИГРОК НАБЛЮДАЕТ - НЕ ОБНОВЛЯЕМ ЕГО ФИЗИКУ
-  if (!player.gameOver) {
+  if (!player.gameOver && gameStarted) {
     player.dy += player.gravity;
     player.y += player.dy;
   }
@@ -430,7 +433,7 @@ function spawnObstacle3() {
 }
 
   function updateObstacles1() {
-  if (!isWatching1) {
+  if (!isWatching1 && gameStarted) {
     obstacles1.forEach(o => {
       o.z -= (gameSpeed + (1 - o.z) * 0.015) * deltaTime;
     });
@@ -439,7 +442,7 @@ function spawnObstacle3() {
 }
 
 function updateObstacles2() {
-  if (!isWatching2) {
+  if (!isWatching2 && gameStarted) {
     obstacles2.forEach(o => {
       o.z -= (gameSpeed + (1 - o.z) * 0.015) * deltaTime;
     });
@@ -448,7 +451,7 @@ function updateObstacles2() {
 }
 
 function updateObstacles3() {
-  if (!isWatching3) {
+  if (!isWatching3 && gameStarted) {
     obstacles3.forEach(o => {
       o.z -= (gameSpeed + (1 - o.z) * 0.015) * deltaTime;
     });
@@ -641,8 +644,23 @@ function drawGameOver() {
     ctx.fillText("Выйти", exitX + btnWidth/2, exitY + 25);
   }
 
+  function drawStartTimer() {
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+
+  if (startTimer > 0) {
+    ctx.font = "bold 80px Arial";
+    ctx.fillText(startTimer, canvas.width / 2, canvas.height / 2);
+  } else if (showStartText) {
+    ctx.font = "bold 60px Arial";
+    ctx.fillText("START", canvas.width / 2, canvas.height / 2);
+  }
+}
   function loop(currentTime) {
-  const deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
+  deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
 
 // защита от скачков FPS
 if (deltaTime > 3) deltaTime = 1;
@@ -658,6 +676,9 @@ if (deltaTime > 3) deltaTime = 1;
     drawObstacles2();
     drawObstacles3();
     drawPlayer();
+    if (!gameStarted) {
+  drawStartTimer();
+}
     ctx.fillStyle = "#fff";
 ctx.font = "20px Arial";
 ctx.textAlign = "left";   // 👈 ВАЖНО: фикс выравнивания
@@ -670,6 +691,7 @@ ctx.fillText("Score: " + score, 20, 40);
     drawExitButton();
     
     gameSpeed += 0.00001 * deltaTime;
+    
     requestAnimationFrame(loop);
   }
 
@@ -677,6 +699,21 @@ ctx.fillText("Score: " + score, 20, 40);
   setInterval(spawnObstacle1, 1200);
   setInterval(spawnObstacle2, 1500);
   setInterval(spawnObstacle3, 1800);
+
+  // Таймер перед стартом (ТОЛЬКО 1 РАЗ!)
+let countdown = setInterval(() => {
+  startTimer--;
+
+  if (startTimer < 0) {
+    showStartText = true;
+  }
+
+  if (startTimer < -1) {
+    clearInterval(countdown);
+    gameStarted = true;
+    showStartText = false;
+  }
+}, 1000);
   
   // Запуск игрового цикла
   requestAnimationFrame(loop);
