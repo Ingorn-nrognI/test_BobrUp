@@ -274,15 +274,19 @@ body {
 
   <div id="roomsList">Загрузка...</div>
 
-  <div class="createRoomBtn" onclick="createRoom()">
-    ➕ Создать комнату
-  </div>
+  <div id="createRoomBtn" class="createRoomBtn" onclick="createRoom()">
+  ➕ Создать комнату
+</div>
 </div>
   
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
+  let roomsListener = null;
+let currentRoomListener = null;
+let currentRoomId = null;
+  
   const firebaseConfig = {
   apiKey: "AIzaSyCxJb69UOCu38RvSbJVnf6jtD8VYDVHPD4",
   authDomain: "web3-bobrup.firebaseapp.com",
@@ -325,38 +329,46 @@ function openRooms() {
 function closeRooms() {
   document.getElementById("roomsModal").style.display = "none";
 }
-  async function loadRooms() {
+  function loadRooms() {
   const list = document.getElementById("roomsList");
-  list.innerHTML = "Загрузка...";
 
-  const snapshot = await db.collection("rooms").get();
+  // ❗ ОТКЛЮЧАЕМ старый listener
+  if (roomsListener) roomsListener();
 
-  list.innerHTML = "";
+  roomsListener = db.collection("rooms").onSnapshot(snapshot => {
+    list.innerHTML = "";
 
-  if (snapshot.empty) {
-    list.innerHTML = "Нет комнат";
-    return;
-  }
+    if (snapshot.empty) {
+      list.innerHTML = "Нет комнат";
+      return;
+    }
 
-  snapshot.forEach(doc => {
-    const room = doc.data();
+    snapshot.forEach(doc => {
+      const room = doc.data();
 
-    const div = document.createElement("div");
-    div.className = "roomItem";
-    div.innerText = `Комната (${room.players.length}/3)`;
+      const div = document.createElement("div");
+      div.className = "roomItem";
+      div.innerText = `Комната (${room.players.length}/3)`;
 
-    div.onclick = () => joinRoom(doc.id);
+      div.onclick = () => joinRoom(doc.id);
 
-    list.appendChild(div);
+      list.appendChild(div);
+    });
   });
 }
-  async function createRoom() {
+ async function createRoom() {
   const name = document.getElementById("nickname").innerText;
 
   const room = {
     players: [name],
     status: "waiting",
-    created: Date.now()
+    created: Date.now(),
+
+    // 🔥 добавляем синхронизацию
+    gameState: {
+      started: false,       // Игра ещё не началась
+      playersData: {}       // Здесь будем хранить позиции и прогресс каждого игрока
+    }
   };
 
   const docRef = await db.collection("rooms").add(room);
@@ -383,31 +395,83 @@ function closeRooms() {
     players: room.players
   });
 
-  openRoomScreen(roomId);
+  currentRoomId = roomId;
+openRoomScreen(roomId);
 }
   function openRoomScreen(roomId) {
   const list = document.getElementById("roomsList");
-  list.innerHTML = "Ожидание игроков...";
+  const createBtn = document.getElementById("createRoomBtn");
+
+  createBtn.style.display = "none";
+
+  // ❗ отключаем старый listener
+  if (currentRoomListener) currentRoomListener();
 
   const roomRef = db.collection("rooms").doc(roomId);
 
-  roomRef.onSnapshot(doc => {
+  // 🔹 один listener на всю комнату
+  currentRoomListener = roomRef.onSnapshot(doc => {
     const room = doc.data();
 
+    // обновление списка игроков
     list.innerHTML = `
       Игроки: ${room.players.length}/3 <br><br>
       ${room.players.join("<br>")}
+      <br><br>
+      <div onclick="leaveRoom('${roomId}')" style="background:#dc3545;padding:10px;border-radius:10px;text-align:center;">
+        Выйти из комнаты
+      </div>
     `;
 
-    if (room.players.length === 3) {
+    // 🔹 СИНХРОНИЗАЦИЯ ДАННЫХ ИГРОКОВ
+    const playersData = room.gameState.playersData;
+    console.log(playersData);
+    renderOtherPlayers(playersData);// для проверки в консоли
+    // Здесь можно вызвать функцию отрисовки других игроков
+    // renderOtherPlayers(playersData);
+
+    // запуск игры, когда игроков 3
+    if (room.players.length === 3 && !room.gameState.started) {
       startMultiplayerGame(roomId);
     }
   });
 }
-  function startMultiplayerGame(roomId) {
+  async function leaveRoom(roomId) {
+  const name = document.getElementById("nickname").innerText;
+  const roomRef = db.collection("rooms").doc(roomId);
+
+  const doc = await roomRef.get();
+  const room = doc.data();
+
+  const newPlayers = room.players.filter(p => p !== name);
+
+  if (newPlayers.length === 0) {
+    await roomRef.delete();
+  } else {
+    await roomRef.update({
+      players: newPlayers
+    });
+  }
+
+  // ❗ очищаем состояние
+  currentRoomId = null;
+
+  if (currentRoomListener) currentRoomListener();
+
+  document.getElementById("createRoomBtn").style.display = "block";
+
+  loadRooms();
+}
+ async function startMultiplayerGame(roomId) {
+  const roomRef = db.collection("rooms").doc(roomId);
+
+  // 🔹 ставим флаг, что игра началась
+  await roomRef.update({ "gameState.started": true });
+
+  // 🔹 закрываем комнату и показываем canvas
   closeRooms();
 
-  // пока просто запускаем обычную игру
+  // 🔹 запускаем игру
   startGame();
 }
 async function openLeaderboard() {
@@ -540,6 +604,64 @@ function initGame() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  // === Игрок и дорожка ===
+const player = {
+  position: 0, // начальная позиция
+  alive: true
+};
+
+const name = document.getElementById("nickname").innerText;
+
+// 🔹 Периодическое обновление данных игрока в Firebase
+const syncInterval = setInterval(() => {
+  if (!currentRoomId) return; // если не в комнате, не пишем
+
+  const roomRef = db.collection("rooms").doc(currentRoomId);
+
+  // ❗ Проверка, что player.alive есть и position обновляется
+  roomRef.update({
+    [`gameState.playersData.${name}`]: {
+      position: player.position,
+      alive: player.alive
+    },
+    "gameState.started": true
+  }).catch(err => console.error("Ошибка обновления позиции:", err));
+
+}, 150); // каждые 150 мс
+
+// ❗ При выходе из игры или комнаты нужно очищать интервал
+window.addEventListener("beforeunload", () => clearInterval(syncInterval));
+  
+    // Получаем ник игрока
+  const nickname = document.getElementById("nickname").innerText;
+
+  // Проверяем, что игрок находится в комнате
+  if (currentRoomId) {
+    const roomRef = db.collection("rooms").doc(currentRoomId);
+
+    // Инициализация игрока в gameState.playersData
+    roomRef.update({
+      [`gameState.playersData.${nickname}`]: {
+        position: 0,
+        alive: true
+      }
+    });
+
+    // Интервал для обновления позиции и статуса игрока
+    setInterval(() => {
+      // ❗ Тут ты вставляешь свои функции, которые реально возвращают позицию и статус
+      const playerPosition = getPlayerPosition(); // твоя функция
+      const isAlive = checkIfAlive();             // твоя функция
+
+      roomRef.update({
+        [`gameState.playersData.${nickname}`]: {
+          position: playerPosition,
+          alive: isAlive
+        }
+      });
+    }, 150); // обновление каждые 150 мс
+  }
+  
   // Картинки
   const beaver = new Image();
   beaver.src = "beaver.png";
