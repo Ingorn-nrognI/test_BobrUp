@@ -799,10 +799,14 @@ function jump() {
         showExitButton = true;
       }
       // кнопка ВЫЙТИ
-      if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
-          y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
-        location.reload();
-      }
+if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
+    y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
+  isWatching2 = true;
+  player.gameOver = false; // останавливаем физику
+  player.dy = 0;
+  player.grounded = true;
+  showExitButton = true;
+}
       return;
     }
     jump();
@@ -835,10 +839,15 @@ function jump() {
         player.grounded = true;
         showExitButton = true;
       }
-      if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
-          y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
-        location.reload();
-      }
+      // кнопка ВЫЙТИ
+if (x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
+    y > exitBtn.y && y < exitBtn.y + exitBtn.h) {
+  isWatching2 = true;
+  player.gameOver = false; // останавливаем физику
+  player.dy = 0;
+  player.grounded = true;
+  showExitButton = true;
+}
       return;
     }
     jump();
@@ -1090,6 +1099,26 @@ function drawGameOver() {
     ctx.fillText("START", canvas.width / 2, canvas.height / 2);
   }
 }
+  async function checkWinner() {
+  if (!currentRoomId) return;
+
+  const roomRef = db.collection("rooms").doc(currentRoomId);
+  const roomDoc = await roomRef.get();
+  const playersData = roomDoc.data().gameState.playersData;
+
+  const alivePlayers = Object.entries(playersData).filter(([_, p]) => p.alive);
+
+  if (alivePlayers.length === 1) {
+    const winnerName = alivePlayers[0][0];
+
+    alert(`Победитель: ${winnerName}`);
+
+    const winnerScore = (winnerName === name) ? score : 0; // если это твой игрок, берём локальный score
+saveBestScore(winnerScore);
+
+    setTimeout(() => closeRooms(), 3000);
+  }
+}
   function loop(currentTime) {
   deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
 
@@ -1124,7 +1153,10 @@ ctx.fillText("Score: " + score, 20, 40);
     if (gameStarted) {
   gameSpeed += 0.00001 * deltaTime;
 }
-    
+    // === STEP 3: Проверка победителя ===
+  if (gameStarted) {
+    checkWinner(); // ✅ вызываем каждый кадр
+  }
     requestAnimationFrame(loop);
   }
 
