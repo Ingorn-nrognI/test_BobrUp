@@ -188,6 +188,51 @@ body {
   color: white !important;
   font-size: 18px !important;
 }
+  /* ===== КОМНАТЫ ===== */
+#roomsModal {
+  display: none;
+  position: fixed;
+  top: 60px;
+  left: 20px;
+  right: 20px;
+  bottom: 100px;
+
+  background: rgba(0,0,0,0.95);
+  color: white;
+
+  padding: 20px;
+  border-radius: 15px;
+
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+.roomsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+#roomsList {
+  margin-bottom: 20px;
+}
+
+.roomItem {
+  padding: 12px;
+  background: #222;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.createRoomBtn {
+  padding: 12px;
+  background: #28a745;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -204,7 +249,7 @@ body {
 
   <div class="bottom-bar">
     <div class="bottom-btn" onclick="openLeaderboard()">📊 Таблица</div>
-    <div class="bottom-btn play" onclick="startGame()">▶ Играть</div>
+    <div class="bottom-btn play" onclick="openRooms()">▶ Играть</div>
     <div class="bottom-btn" onclick="openSkins()">🎨 Скины</div>
   </div>
 </div>
@@ -220,7 +265,20 @@ body {
   </div>
   <div id="leaderboardContent"></div>
 </div>
+  
+<div id="roomsModal">
+  <div class="roomsHeader">
+    <h2>🎮 Комнаты</h2>
+    <span class="closeBtn" onclick="closeRooms()">✖️</span>
+  </div>
 
+  <div id="roomsList">Загрузка...</div>
+
+  <div class="createRoomBtn" onclick="createRoom()">
+    ➕ Создать комнату
+  </div>
+</div>
+  
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -258,7 +316,100 @@ function startGame() {
   // Запуск игры
   initGame();
 }
+  
+function openRooms() {
+  document.getElementById("roomsModal").style.display = "block";
+  loadRooms();
+}
 
+function closeRooms() {
+  document.getElementById("roomsModal").style.display = "none";
+}
+  async function loadRooms() {
+  const list = document.getElementById("roomsList");
+  list.innerHTML = "Загрузка...";
+
+  const snapshot = await db.collection("rooms").get();
+
+  list.innerHTML = "";
+
+  if (snapshot.empty) {
+    list.innerHTML = "Нет комнат";
+    return;
+  }
+
+  snapshot.forEach(doc => {
+    const room = doc.data();
+
+    const div = document.createElement("div");
+    div.className = "roomItem";
+    div.innerText = `Комната (${room.players.length}/3)`;
+
+    div.onclick = () => joinRoom(doc.id);
+
+    list.appendChild(div);
+  });
+}
+  async function createRoom() {
+  const name = document.getElementById("nickname").innerText;
+
+  const room = {
+    players: [name],
+    status: "waiting",
+    created: Date.now()
+  };
+
+  const docRef = await db.collection("rooms").add(room);
+
+  joinRoom(docRef.id);
+}
+  async function joinRoom(roomId) {
+  const name = document.getElementById("nickname").innerText;
+  const roomRef = db.collection("rooms").doc(roomId);
+
+  const doc = await roomRef.get();
+  const room = doc.data();
+
+  if (room.players.length >= 3) {
+    alert("Комната заполнена");
+    return;
+  }
+
+  if (!room.players.includes(name)) {
+    room.players.push(name);
+  }
+
+  await roomRef.update({
+    players: room.players
+  });
+
+  openRoomScreen(roomId);
+}
+  function openRoomScreen(roomId) {
+  const list = document.getElementById("roomsList");
+  list.innerHTML = "Ожидание игроков...";
+
+  const roomRef = db.collection("rooms").doc(roomId);
+
+  roomRef.onSnapshot(doc => {
+    const room = doc.data();
+
+    list.innerHTML = `
+      Игроки: ${room.players.length}/3 <br><br>
+      ${room.players.join("<br>")}
+    `;
+
+    if (room.players.length === 3) {
+      startMultiplayerGame(roomId);
+    }
+  });
+}
+  function startMultiplayerGame(roomId) {
+  closeRooms();
+
+  // пока просто запускаем обычную игру
+  startGame();
+}
 async function openLeaderboard() {
   const contentDiv = document.getElementById("leaderboardContent");
   contentDiv.innerHTML = "Загрузка...";
