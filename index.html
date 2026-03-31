@@ -341,6 +341,9 @@ function closeRooms() {
     snapshot.forEach(doc => {
       const room = doc.data();
 
+      // защита от битых / пустых данных
+      if (!room || !Array.isArray(room.players)) return;
+
       const div = document.createElement("div");
       div.className = "roomItem";
       div.innerText = `Комната (${room.players.length}/3)`;
@@ -349,6 +352,10 @@ function closeRooms() {
 
       list.appendChild(div);
     });
+
+    if (list.innerHTML === "") {
+      list.innerHTML = "Нет доступных комнат";
+    }
   });
 }
  async function createRoom() {
@@ -375,7 +382,20 @@ function closeRooms() {
   const roomRef = db.collection("rooms").doc(roomId);
 
   const doc = await roomRef.get();
+
+  if (!doc.exists) {
+    alert("Комната уже удалена");
+    loadRooms();
+    return;
+  }
+
   const room = doc.data();
+
+  if (!room || !Array.isArray(room.players)) {
+    alert("Ошибка данных комнаты");
+    loadRooms();
+    return;
+  }
 
   if (room.players.length >= 3) {
     alert("Комната заполнена");
@@ -391,7 +411,7 @@ function closeRooms() {
   });
 
   currentRoomId = roomId;
-openRoomScreen(roomId);
+  openRoomScreen(roomId);
 }
   function openRoomScreen(roomId) {
   const list = document.getElementById("roomsList");
@@ -406,7 +426,23 @@ openRoomScreen(roomId);
 
   // 🔹 один listener на всю комнату
   currentRoomListener = roomRef.onSnapshot(doc => {
+    // если комнаты уже нет
+    if (!doc.exists) {
+      list.innerHTML = "Комната была удалена";
+      createBtn.style.display = "block";
+      currentRoomId = null;
+      return;
+    }
+
     const room = doc.data();
+
+    // защита от пустых / битых данных
+    if (!room || !Array.isArray(room.players)) {
+      list.innerHTML = "Ошибка данных комнаты";
+      createBtn.style.display = "block";
+      currentRoomId = null;
+      return;
+    }
 
     // обновление списка игроков
     list.innerHTML = `
@@ -419,14 +455,12 @@ openRoomScreen(roomId);
     `;
 
     // 🔹 СИНХРОНИЗАЦИЯ ДАННЫХ ИГРОКОВ
-    const playersData = room.gameState.playersData;
-console.log(playersData);
-// renderOtherPlayers(playersData); // временно отключено, пока функция не создана // для проверки в консоли
-    // Здесь можно вызвать функцию отрисовки других игроков
-    // renderOtherPlayers(playersData);
+    const playersData = room.gameState?.playersData || {};
+    console.log(playersData);
+    // renderOtherPlayers(playersData); // временно отключено
 
     // запуск игры, когда игроков 3
-    if (room.players.length === 3 && !room.gameState.started) {
+    if (room.players.length === 3 && !room.gameState?.started) {
       startMultiplayerGame(roomId);
     }
   });
@@ -436,7 +470,24 @@ console.log(playersData);
   const roomRef = db.collection("rooms").doc(roomId);
 
   const doc = await roomRef.get();
+
+  if (!doc.exists) {
+    currentRoomId = null;
+    if (currentRoomListener) currentRoomListener();
+    document.getElementById("createRoomBtn").style.display = "block";
+    loadRooms();
+    return;
+  }
+
   const room = doc.data();
+
+  if (!room || !Array.isArray(room.players)) {
+    currentRoomId = null;
+    if (currentRoomListener) currentRoomListener();
+    document.getElementById("createRoomBtn").style.display = "block";
+    loadRooms();
+    return;
+  }
 
   const newPlayers = room.players.filter(p => p !== name);
 
