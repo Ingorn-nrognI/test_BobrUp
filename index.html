@@ -20,13 +20,10 @@ body {
   background: #87CEEB;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Верхняя панель */
@@ -97,9 +94,8 @@ body {
 }
 /* Меню */
 #menu {
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #2c3e50, #1a472a);
@@ -111,9 +107,8 @@ body {
 /* Canvas для игры */
 #game {
   display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   background: #87CEEB;
@@ -602,8 +597,8 @@ function initGame() {
   const roadRight = 0.85;  // правый край дороги
   const laneOffset = 0.2;  // расстояние от центра до боковых полос
 
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = canvas.clientWidth || window.innerWidth;
+canvas.height = canvas.clientHeight || window.innerHeight;
 
   // === СОСТОЯНИЕ ИГРОКА ДЛЯ FIREBASE ===
   // ⚠️ Раньше здесь был const player, что ломало код,
@@ -647,24 +642,18 @@ function initGame() {
   // Устанавливаем текущему игроку среднюю полосу
   player.x = lane2 - player.width / 2;
 
-  // Обработчик изменения размера экрана
-  window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    // Пересчитываем координаты полос
-    const newLane2 = canvas.width * roadCenter;
-    
-    // Обновляем позицию игрока
-    player.x = newLane2 - player.width / 2;
-    
-    // Если меню видимо, принудительно восстанавливаем размер
-    const menu = document.getElementById("menu");
-    if (menu.style.display === "flex") {
-      menu.style.width = "100%";
-      menu.style.height = "100%";
-    }
-  });
+window.addEventListener("resize", () => {
+  // Если очень не хочется, чтобы приложение перескакивало при каждом ресайзе,
+  // можно вообще не трогать menu
+  canvas.width = canvas.clientWidth || window.innerWidth;
+  canvas.height = canvas.clientHeight || window.innerHeight;
+
+  // Пересчитываем координаты полос
+  const newLane2 = canvas.width * roadCenter;
+
+  // Обновляем позицию игрока
+  player.x = newLane2 - player.width / 2;
+});
 
   // 🔹 Периодическое обновление данных игрока в Firebase
   let syncInterval = null;
