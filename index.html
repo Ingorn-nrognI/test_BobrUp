@@ -648,26 +648,45 @@ function closeLeaderboard() {
   document.getElementById("leaderboardModal").style.display = "none";
 }
 
+  async function clearLeaderboard() {
+  try {
+    const snapshot = await db.collection("leaderboard").get();
+
+    const promises = [];
+    snapshot.forEach(doc => {
+      promises.push(doc.ref.delete());
+    });
+
+    await Promise.all(promises);
+    console.log("Таблица лидеров полностью очищена");
+    alert("Таблица лидеров очищена");
+  } catch (e) {
+    console.error("Ошибка очистки таблицы лидеров:", e);
+    alert("Ошибка очистки таблицы лидеров");
+  }
+}
+  clearLeaderboard();
+
 async function saveBestScore(score) {
-  const name = document.getElementById("nickname").innerText;
+  const name = document.getElementById("nickname").innerText.trim();
+  const playerId = name; // один игрок = один документ
 
   try {
-    // Сначала ищем игрока по имени
-    const snapshot = await db.collection("leaderboard")
-                             .where("name", "==", name)
-                             .get();
+    const playerRef = db.collection("leaderboard").doc(playerId);
+    const doc = await playerRef.get();
 
-    if (!snapshot.empty) {
-      // Игрок уже есть, проверяем рекорд
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (score > data.score) {
-          doc.ref.update({ score: score, date: Date.now() });
-        }
-      });
+    if (doc.exists) {
+      const data = doc.data();
+
+      if (score > (data.score || 0)) {
+        await playerRef.update({
+          name: name,
+          score: score,
+          date: Date.now()
+        });
+      }
     } else {
-      // Игрока нет → создаем запись
-      await db.collection("leaderboard").add({
+      await playerRef.set({
         name: name,
         score: score,
         date: Date.now()
