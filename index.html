@@ -296,11 +296,13 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
   
 // Получаем ник из Telegram
+let tgUser = null;
+
 if (window.Telegram && Telegram.WebApp) {
-  const user = Telegram.WebApp.initDataUnsafe.user;
-  if (user) {
+  tgUser = Telegram.WebApp.initDataUnsafe.user;
+  if (tgUser) {
     document.getElementById("nickname").innerText =
-      user.username || user.first_name;
+      tgUser.username || tgUser.first_name || ("user_" + tgUser.id);
   }
 }
 
@@ -324,13 +326,52 @@ function openRooms() {
 function closeRooms() {
   document.getElementById("roomsModal").style.display = "none";
 }
-  function loadRooms() {
+
+async function cleanupRooms() {
+  try {
+    const snapshot = await db.collection("rooms").get();
+    const now = Date.now();
+
+    const maxWaitingRoomAge = 10 * 60 * 1000;   // waiting-комнаты: 10 минут
+    const maxFinishedRoomAge = 2 * 60 * 1000;   // finished-комнаты: 2 минуты
+
+    const promises = [];
+
+    snapshot.forEach(doc => {
+      const room = doc.data();
+
+      if (!room) {
+        promises.push(doc.ref.delete());
+        return;
+      }
+
+      const players = Array.isArray(room.players) ? room.players : [];
+      const created = room.created || 0;
+      const isFinished = room.status === "finished" || room.gameState?.finished === true;
+      const isStarted = room.status === "playing" || room.gameState?.started === true;
+
+      const waitingTooOld = !isStarted && !isFinished && created && (now - created > maxWaitingRoomAge);
+      const finishedTooOld = isFinished && created && (now - created > maxFinishedRoomAge);
+
+      if (players.length === 0 || waitingTooOld || finishedTooOld) {
+        promises.push(doc.ref.delete());
+      }
+    });
+
+    await Promise.all(promises);
+  } catch (e) {
+    console.error("Ошибка cleanupRooms:", e);
+  }
+}
+
+async function loadRooms() {
   const list = document.getElementById("roomsList");
 
-  // ❗ ОТКЛЮЧАЕМ старый listener
   if (roomsListener) roomsListener();
 
-  roomsListener = db.collection("rooms").onSnapshot(snapshot => {
+  await cleanupRooms();
+
+  roomsListener = db.collection("rooms").onSnapshot(async snapshot => {
     list.innerHTML = "";
 
     if (snapshot.empty) {
@@ -338,22 +379,47 @@ function closeRooms() {
       return;
     }
 
-    snapshot.forEach(doc => {
-      const room = doc.data();
+    const now = Date.now();
+const maxWaitingRoomAge = 10 * 60 * 1000; // waiting-комнаты: 10 минут
+const maxFinishedRoomAge = 2 * 60 * 1000; // finished-комнаты: 2 минуты
+let visibleRooms = 0;
 
-      // защита от битых / пустых данных
-      if (!room || !Array.isArray(room.players)) return;
+for (const doc of snapshot.docs) {
+  const room = doc.data();
 
-      const div = document.createElement("div");
-      div.className = "roomItem";
-      div.innerText = `Комната (${room.players.length}/3)`;
+  if (!room || !Array.isArray(room.players)) {
+    await doc.ref.delete();
+    continue;
+  }
 
-      div.onclick = () => joinRoom(doc.id);
+  const players = room.players.filter(Boolean);
+  const created = room.created || 0;
+  const isFinished = room.status === "finished" || room.gameState?.finished === true;
+  const isStarted = room.status === "playing" || room.gameState?.started === true;
 
-      list.appendChild(div);
-    });
+  const waitingTooOld = !isStarted && !isFinished && created && (now - created > maxWaitingRoomAge);
+  const finishedTooOld = isFinished && created && (now - created > maxFinishedRoomAge);
 
-    if (list.innerHTML === "") {
+  if (players.length === 0 || waitingTooOld || finishedTooOld) {
+    await doc.ref.delete();
+    continue;
+  }
+
+  // finished-комнаты не показываем
+  if (isFinished) {
+    continue;
+  }
+
+  const div = document.createElement("div");
+  div.className = "roomItem";
+  div.innerText = `Комната (${players.length}/3)`;
+  div.onclick = () => joinRoom(doc.id);
+
+  list.appendChild(div);
+  visibleRooms++;
+}
+
+    if (visibleRooms === 0) {
       list.innerHTML = "Нет доступных комнат";
     }
   });
@@ -398,11 +464,21 @@ function closeRooms() {
 
   const room = doc.data();
 
-  if (!room || !Array.isArray(room.players)) {
-    alert("Ошибка данных комнаты");
-    loadRooms();
-    return;
-  }
+if (!room || !Array.isArray(room.players)) {
+  alert("Ошибка данных комнаты");
+  loadRooms();
+  return;
+}
+
+const now = Date.now();
+const maxRoomAge = 10 * 60 * 1000; // 10 минут
+
+if (room.created && (now - room.created > maxRoomAge)) {
+  await roomRef.delete();
+  alert("Комната устарела и была удалена");
+  loadRooms();
+  return;
+}
 
   if (room.status === "finished") {
     alert("Игра в комнате уже закончена");
@@ -493,12 +569,23 @@ async function tryStartRoom(roomId, room) {
 
     const room = doc.data();
 
-    if (!room || !Array.isArray(room.players)) {
-      list.innerHTML = "Ошибка данных комнаты";
-      createBtn.style.display = "block";
-      currentRoomId = null;
-      return;
-    }
+if (!room || !Array.isArray(room.players)) {
+  list.innerHTML = "Ошибка данных комнаты";
+  createBtn.style.display = "block";
+  currentRoomId = null;
+  return;
+}
+
+const now = Date.now();
+const maxRoomAge = 10 * 60 * 1000;
+
+if (room.created && (now - room.created > maxRoomAge)) {
+  await roomRef.delete();
+  list.innerHTML = "Комната устарела и была удалена";
+  createBtn.style.display = "block";
+  currentRoomId = null;
+  return;
+}
 
     let timerText = "";
     if (!room.gameState?.started && room.startAt && room.players.length >= 2) {
@@ -665,11 +752,10 @@ function closeLeaderboard() {
     alert("Ошибка очистки таблицы лидеров");
   }
 }
-  clearLeaderboard();
 
 async function saveBestScore(score) {
   const name = document.getElementById("nickname").innerText.trim();
-  const playerId = name; // один игрок = один документ
+  const playerId = tgUser?.id ? String(tgUser.id) : name;
 
   try {
     const playerRef = db.collection("leaderboard").doc(playerId);
@@ -682,14 +768,16 @@ async function saveBestScore(score) {
         await playerRef.update({
           name: name,
           score: score,
-          date: Date.now()
+          date: Date.now(),
+          userId: playerId
         });
       }
     } else {
       await playerRef.set({
         name: name,
         score: score,
-        date: Date.now()
+        date: Date.now(),
+        userId: playerId
       });
     }
   } catch (e) {
@@ -1287,21 +1375,26 @@ async function leaveAfterLoss() {
     const doc = await roomRef.get();
 
     if (doc.exists) {
-      const room = doc.data();
-      const newPlayers = Array.isArray(room.players)
-        ? room.players.filter(p => p !== name)
-        : [];
+  const room = doc.data();
+  const newPlayers = Array.isArray(room.players)
+    ? room.players.filter(p => p !== name)
+    : [];
 
-      if (newPlayers.length === 0) {
-        await roomRef.delete();
-      } else {
-        await roomRef.update({
-          players: newPlayers,
-          [`gameState.playersData.${name}.alive`]: false,
-          [`gameState.playersData.${name}.leftRoom`]: true
-        });
-      }
+  if (newPlayers.length === 0) {
+    await roomRef.delete();
+  } else {
+    const updateData = {
+      players: newPlayers,
+      [`gameState.playersData.${name}`]: firebase.firestore.FieldValue.delete()
+    };
+
+    if (newPlayers.length < 2) {
+      updateData.startAt = null;
     }
+
+    await roomRef.update(updateData);
+  }
+}
   } catch (e) {
     console.error("Ошибка выхода после поражения:", e);
   }
@@ -1363,16 +1456,11 @@ async function leaveAfterLoss() {
     }
 
     // удалить комнату после завершения
-    setTimeout(async () => {
-      try {
-        const finalDoc = await roomRef.get();
-        if (finalDoc.exists) {
-          await roomRef.delete();
-        }
-      } catch (e) {
-        console.error("Ошибка удаления комнаты:", e);
-      }
-    }, 3000);
+    try {
+  await roomRef.delete();
+} catch (e) {
+  console.error("Ошибка удаления комнаты:", e);
+}
   }
 }
 
