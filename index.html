@@ -367,6 +367,7 @@ body {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
+  
   let roomsListener = null;
 let currentRoomListener = null;
 let currentRoomId = null;
@@ -380,6 +381,11 @@ let endGameWatcher = null;
 let endGameShown = false;
 let openEndGameForCurrentMatch = null;
 let exitEndGameForCurrentMatch = null;
+
+let gameResizeHandler = null;
+let gameBeforeUnloadHandler = null;
+let gameCanvasClickHandler = null;
+let gameCanvasTouchHandler = null;
 
 function stopRoomCountdown() {
   if (roomCountdownInterval) {
@@ -546,57 +552,7 @@ function closeRooms() {
 }
 
 async function cleanupRooms() {
-  try {
-    const snapshot = await db.collection("rooms").get();
-    const now = Date.now();
-
-    const maxWaitingRoomAge = 10 * 60 * 1000;   // waiting: 10 минут
-    const maxFinishedRoomAge = 2 * 60 * 1000;   // finished: 2 минуты
-    const maxPlayingRoomAge = 3 * 60 * 1000;    // playing без активности: 3 минуты
-
-    const promises = [];
-
-    snapshot.forEach(doc => {
-      const room = doc.data();
-
-      if (!room) {
-        promises.push(doc.ref.delete());
-        return;
-      }
-
-      const players = Array.isArray(room.players) ? room.players.filter(Boolean) : [];
-      const created = getRoomTimeMs(room.created) || 0;
-const updatedAt = getRoomTimeMs(room.updatedAt) || getRoomTimeMs(room.created) || 0;
-
-      const isFinished = room.status === "finished" || room.gameState?.finished === true;
-      const isStarted = room.status === "playing" || room.gameState?.started === true;
-
-      const waitingTooOld =
-        !isStarted &&
-        !isFinished &&
-        created &&
-        (now - created > maxWaitingRoomAge);
-
-      const finishedTooOld =
-        isFinished &&
-        updatedAt &&
-        (now - updatedAt > maxFinishedRoomAge);
-
-      const playingTooOld =
-        isStarted &&
-        !isFinished &&
-        updatedAt &&
-        (now - updatedAt > maxPlayingRoomAge);
-
-      if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
-        promises.push(doc.ref.delete());
-      }
-    });
-
-    await Promise.all(promises);
-  } catch (e) {
-    console.error("Ошибка cleanupRooms:", e);
-  }
+  return;
 }
 
 async function loadRooms() {
@@ -604,9 +560,9 @@ async function loadRooms() {
 
   if (roomsListener) roomsListener();
 
-  await cleanupRooms();
-
-  roomsListener = db.collection("rooms").onSnapshot(async snapshot => {
+  roomsListener = db.collection("rooms")
+  .where("status", "==", "waiting")
+  .onSnapshot(async snapshot => {
     list.innerHTML = "";
 
     if (snapshot.empty) {
@@ -623,9 +579,8 @@ for (const doc of snapshot.docs) {
   const room = doc.data();
 
   if (!room || !Array.isArray(room.players)) {
-    await doc.ref.delete();
-    continue;
-  }
+  continue;
+}
 
   const players = room.players.filter(Boolean);
   const created = getRoomTimeMs(room.created) || 0;
@@ -643,7 +598,6 @@ const playingTooOld =
   isStarted && !isFinished && updatedAt && (now - updatedAt > 3 * 60 * 1000);
 
 if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
-  await doc.ref.delete();
   continue;
 }
 
@@ -681,13 +635,15 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
     finished: false,
     winner: null,
     playersData: {
-      [name]: {
-        alive: true,
-        lost: false,
-        leftRoom: false,
-        position: 0
-      }
-    }
+  [name]: {
+    alive: true,
+    lost: false,
+    leftRoom: false,
+    position: 0,
+    score: 0,
+    firstObstacleResolved: false
+  }
+}
   }
 };
 
@@ -717,9 +673,8 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
       const maxRoomIdleAge = 3 * 60 * 1000;
 
       if (lastActivity && (now - lastActivity > maxRoomIdleAge)) {
-        transaction.delete(roomRef);
-        throw new Error("ROOM_EXPIRED");
-      }
+  throw new Error("ROOM_EXPIRED");
+}
 
       if (room.status === "finished") {
         throw new Error("ROOM_FINISHED");
@@ -739,11 +694,13 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
         players,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         [`gameState.playersData.${name}`]: {
-          alive: true,
-          lost: false,
-          leftRoom: false,
-          position: 0
-        }
+  alive: true,
+  lost: false,
+  leftRoom: false,
+  position: 0,
+  score: 0,
+  firstObstacleResolved: false
+}
       };
 
       // Ровно в момент, когда стало 2 игрока, запускаем таймер
@@ -1323,18 +1280,32 @@ canvas.height = canvas.clientHeight || window.innerHeight;
   // Устанавливаем текущему игроку среднюю полосу
   player.x = lane2 - player.width / 2;
 
-window.addEventListener("resize", () => {
-  // Если очень не хочется, чтобы приложение перескакивало при каждом ресайзе,
-  // можно вообще не трогать menu
+if (gameResizeHandler) {
+  window.removeEventListener("resize", gameResizeHandler);
+}
+
+gameResizeHandler = () => {
   canvas.width = canvas.clientWidth || window.innerWidth;
   canvas.height = canvas.clientHeight || window.innerHeight;
 
-  // Пересчитываем координаты полос
   const newLane2 = canvas.width * roadCenter;
-
-  // Обновляем позицию игрока
   player.x = newLane2 - player.width / 2;
-});
+};
+
+window.addEventListener("resize", gameResizeHandler);
+
+  // Препятствия
+let obstacles1 = [];
+let obstacles2 = [];
+let obstacles3 = [];
+let gameSpeed = 0.008;
+let lastTime = performance.now();
+let deltaTime = 1;
+let score = 0;
+let firstObstacleResolved = false;
+let gameStarted = false;   // игра ещё не началась
+let startTimer = 3;        // таймер
+let showStartText = true;  // показывать ли START
 
   // 🔹 Периодическое обновление данных игрока в Firebase
 let syncInterval = null;
@@ -1345,36 +1316,34 @@ if (currentRoomId) {
   roomRef.update({
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     [`gameState.playersData.${name}.position`]: playerState.position,
-    [`gameState.playersData.${name}.alive`]: playerState.alive
+    [`gameState.playersData.${name}.alive`]: playerState.alive,
+    [`gameState.playersData.${name}.score`]: score,
+    [`gameState.playersData.${name}.firstObstacleResolved`]: firstObstacleResolved
   }).catch(err => console.error("Ошибка начальной записи игрока:", err));
 
   syncInterval = setInterval(() => {
-    if (!currentRoomId) return;
+  if (!currentRoomId) return;
 
-    roomRef.update({
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`gameState.playersData.${name}.position`]: playerState.position,
-      [`gameState.playersData.${name}.alive`]: playerState.alive
-    }).catch(err => console.error("Ошибка обновления позиции:", err));
-  }, 150);
+  roomRef.update({
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    [`gameState.playersData.${name}.position`]: playerState.position,
+    [`gameState.playersData.${name}.alive`]: playerState.alive,
+    [`gameState.playersData.${name}.score`]: score,
+    [`gameState.playersData.${name}.firstObstacleResolved`]: firstObstacleResolved
+  }).catch(err => console.error("Ошибка обновления позиции:", err));
+}, 400);
 }
 
   // ❗ При выходе из игры или комнаты нужно очищать интервал
-  window.addEventListener("beforeunload", () => {
-    if (syncInterval) clearInterval(syncInterval);
-  });
+  if (gameBeforeUnloadHandler) {
+  window.removeEventListener("beforeunload", gameBeforeUnloadHandler);
+}
 
-  // Препятствия
-  let obstacles1 = [];
-  let obstacles2 = [];
-  let obstacles3 = [];
-  let gameSpeed = 0.008;
-  let lastTime = performance.now();
-  let deltaTime = 1;
-  let score = 0;
-  let gameStarted = false;   // игра ещё не началась
-  let startTimer = 3;        // таймер
-  let showStartText = true;  // показывать ли START
+gameBeforeUnloadHandler = () => {
+  if (syncInterval) clearInterval(syncInterval);
+};
+
+window.addEventListener("beforeunload", gameBeforeUnloadHandler);
 
   // Флаги для каждой полосы (кто в режиме наблюдателя)
   let isWatching1 = false;  // левая полоса
@@ -1451,13 +1420,16 @@ exitEndGameForCurrentMatch = async function() {
 }
 
 // Обработчики событий
-canvas.addEventListener("click", (e) => {
+if (gameCanvasClickHandler) {
+  canvas.removeEventListener("click", gameCanvasClickHandler);
+}
+
+gameCanvasClickHandler = (e) => {
   console.log("click detected");
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  // нижняя кнопка "Выйти" после режима "Смотреть"
   if (
     showExitButton &&
     x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
@@ -1470,7 +1442,6 @@ canvas.addEventListener("click", (e) => {
   console.log("click detected, player.gameOver:", player.gameOver, "gameStarted:", gameStarted);
 
   if (player.gameOver) {
-    // кнопка СМОТРЕТЬ
     if (
       x > watchBtn.x && x < watchBtn.x + watchBtn.w &&
       y > watchBtn.y && y < watchBtn.y + watchBtn.h
@@ -1489,7 +1460,6 @@ canvas.addEventListener("click", (e) => {
       return;
     }
 
-    // кнопка ВЫЙТИ после проигрыша
     if (
       x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
       y > exitBtn.y && y < exitBtn.y + exitBtn.h
@@ -1502,9 +1472,15 @@ canvas.addEventListener("click", (e) => {
   }
 
   jump();
-});
+};
 
-canvas.addEventListener("touchstart", (e) => {
+canvas.addEventListener("click", gameCanvasClickHandler);
+
+if (gameCanvasTouchHandler) {
+  canvas.removeEventListener("touchstart", gameCanvasTouchHandler);
+}
+
+gameCanvasTouchHandler = (e) => {
   e.preventDefault();
 
   const touch = e.touches[0];
@@ -1512,7 +1488,6 @@ canvas.addEventListener("touchstart", (e) => {
   const x = touch.clientX - rect.left;
   const y = touch.clientY - rect.top;
 
-  // нижняя кнопка "Выйти" после режима "Смотреть"
   if (
     showExitButton &&
     x > exitToMenuBtn.x && x < exitToMenuBtn.x + exitToMenuBtn.w &&
@@ -1523,7 +1498,6 @@ canvas.addEventListener("touchstart", (e) => {
   }
 
   if (player.gameOver) {
-    // кнопка СМОТРЕТЬ
     if (
       x > watchBtn.x && x < watchBtn.x + watchBtn.w &&
       y > watchBtn.y && y < watchBtn.y + watchBtn.h
@@ -1542,7 +1516,6 @@ canvas.addEventListener("touchstart", (e) => {
       return;
     }
 
-    // кнопка ВЫЙТИ после проигрыша
     if (
       x > exitBtn.x && x < exitBtn.x + exitBtn.w &&
       y > exitBtn.y && y < exitBtn.y + exitBtn.h
@@ -1555,7 +1528,9 @@ canvas.addEventListener("touchstart", (e) => {
   }
 
   jump();
-});
+};
+
+canvas.addEventListener("touchstart", gameCanvasTouchHandler);
   
   function updatePlayer() {
     // ЕСЛИ ИГРОК НАБЛЮДАЕТ - НЕ ОБНОВЛЯЕМ ЕГО ФИЗИКУ
@@ -1660,18 +1635,22 @@ saveBestScore(score);
 player.gameOver = true;
 playerLost = true;
 playerState.alive = false;
+firstObstacleResolved = true;
 markPlayerAsLost();
 return;
 }     
-        // НАЧИСЛЕНИЕ ОЧКОВ (только если не врезался)
-        if (!o.passed && o.z < 0.2 && !player.gameOver) {
-          o.passed = true;
-          
-          // Очки только когда игрок в воздухе (перепрыгнул)
-          if (!player.grounded) {
-            score++;
-          }
-        }
+       if (!o.passed && o.z < 0.2 && !player.gameOver) {
+  o.passed = true;
+
+  if (!firstObstacleResolved) {
+    firstObstacleResolved = true;
+  }
+  
+  // Очки только когда игрок в воздухе (перепрыгнул)
+  if (!player.grounded) {
+    score++;
+  }
+}
       }
     }
   }
@@ -1897,6 +1876,27 @@ multiplayerGameStarted = false;
 showExitButton = false;
 openEndGameForCurrentMatch = null;
 exitEndGameForCurrentMatch = null;
+
+if (gameResizeHandler) {
+  window.removeEventListener("resize", gameResizeHandler);
+  gameResizeHandler = null;
+}
+
+if (gameBeforeUnloadHandler) {
+  window.removeEventListener("beforeunload", gameBeforeUnloadHandler);
+  gameBeforeUnloadHandler = null;
+}
+
+if (gameCanvasClickHandler) {
+  canvas.removeEventListener("click", gameCanvasClickHandler);
+  gameCanvasClickHandler = null;
+}
+
+if (gameCanvasTouchHandler) {
+  canvas.removeEventListener("touchstart", gameCanvasTouchHandler);
+  gameCanvasTouchHandler = null;
+}
+
 fullResetMenu();
 document.getElementById("createRoomBtn").style.display = "block";
 loadRooms();
@@ -1922,11 +1922,15 @@ async function checkWinner() {
     });
 
     if (alivePlayers.length === 1) {
-      winnerProcessing = true;
+  const winnerName = alivePlayers[0][0];
+  const winnerData = playersData[winnerName] || {};
 
-      const winnerName = alivePlayers[0][0];
-      const winnerData = playersData[winnerName] || {};
+  if (!winnerData.firstObstacleResolved) {
+    return;
+  }
 
+  winnerProcessing = true;
+      
       if (winnerName === name) {
         await saveBestScore(score);
       }
