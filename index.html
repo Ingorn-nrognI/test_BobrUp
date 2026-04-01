@@ -1921,29 +1921,41 @@ async function checkWinner() {
       return p && p.alive === true;
     });
 
+    const allLosersSorted = Object.entries(playersData)
+      .filter(([_, p]) => p && p.lost === true)
+      .sort((a, b) => Number(b[1].lostAt || 0) - Number(a[1].lostAt || 0));
+
+    // =========================
+    // ВАРИАНТ 1: остался 1 живой
+    // =========================
     if (alivePlayers.length === 1) {
-  const winnerName = alivePlayers[0][0];
-  const winnerData = playersData[winnerName] || {};
+      const winnerName = alivePlayers[0][0];
+      const winnerData = playersData[winnerName] || {};
 
-  if (!winnerData.firstObstacleResolved) {
-    return;
-  }
+      const loserEntries = allLosersSorted.filter(([playerName]) => playerName !== winnerName);
 
-  winnerProcessing = true;
-      
-      if (winnerName === name) {
-        await saveBestScore(score);
+      const maxLoserScore = loserEntries.length
+        ? Math.max(...loserEntries.map(([_, p]) => Number(p.score || 0)))
+        : -1;
+
+      // Победитель должен УЖЕ обогнать лучший счёт проигравших
+      if (Number(winnerData.score || 0) <= maxLoserScore) {
+        return;
       }
 
-      const loserEntries = Object.entries(playersData)
-        .filter(([playerName, p]) => playerName !== winnerName && p && p.lost === true)
-        .sort((a, b) => Number(b[1].lostAt || 0) - Number(a[1].lostAt || 0));
+      winnerProcessing = true;
+
+      const winnerScore = winnerName === name ? score : Number(winnerData.score || 0);
+
+      if (winnerName === name) {
+        await saveBestScore(winnerScore);
+      }
 
       const finalResults = [
         {
           place: 1,
           name: winnerName,
-          score: winnerName === name ? score : Number(winnerData.score || 0)
+          score: winnerScore
         }
       ];
 
@@ -1970,7 +1982,75 @@ async function checkWinner() {
         "gameState.started": false,
         "gameState.winner": winnerName,
         "gameState.results": finalResults,
-        [`gameState.playersData.${winnerName}.score`]: winnerName === name ? score : Number(winnerData.score || 0)
+        [`gameState.playersData.${winnerName}.score`]: winnerScore
+      });
+
+      showEndGameModal({
+        winner: winnerName,
+        results: finalResults
+      });
+
+      return;
+    }
+
+    // =========================
+    // ВАРИАНТ 2: живых не осталось
+    // =========================
+    if (alivePlayers.length === 0 && allLosersSorted.length > 0) {
+      // Последний проигравший = фактический победитель
+      const winnerName = allLosersSorted[0][0];
+      const winnerData = allLosersSorted[0][1] || {};
+
+      const otherLosers = allLosersSorted.slice(1);
+
+      const maxOtherScore = otherLosers.length
+        ? Math.max(...otherLosers.map(([_, p]) => Number(p.score || 0)))
+        : -1;
+
+      // Даём +1 очко за последнее разыгранное бревно
+      const winnerScore = Math.max(
+        Number(winnerData.score || 0),
+        maxOtherScore + 1
+      );
+
+      winnerProcessing = true;
+
+      if (winnerName === name) {
+        await saveBestScore(winnerScore);
+      }
+
+      const finalResults = [
+        {
+          place: 1,
+          name: winnerName,
+          score: winnerScore
+        }
+      ];
+
+      if (otherLosers[0]) {
+        finalResults.push({
+          place: 2,
+          name: otherLosers[0][0],
+          score: Number(otherLosers[0][1].score || 0)
+        });
+      }
+
+      if (otherLosers[1]) {
+        finalResults.push({
+          place: 3,
+          name: otherLosers[1][0],
+          score: Number(otherLosers[1][1].score || 0)
+        });
+      }
+
+      await roomRef.update({
+        status: "finished",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        "gameState.finished": true,
+        "gameState.started": false,
+        "gameState.winner": winnerName,
+        "gameState.results": finalResults,
+        [`gameState.playersData.${winnerName}.score`]: winnerScore
       });
 
       showEndGameModal({
@@ -1981,9 +2061,7 @@ async function checkWinner() {
   } catch (e) {
     console.error("Ошибка checkWinner:", e);
   }
-}
-
-  function loop(currentTime) {
+}function loop(currentTime) {
     deltaTime = (currentTime - lastTime) / 16.67; // нормализация под 60 FPS
 
     // Защита от скачков FPS (и слишком маленьких, и слишком больших)
