@@ -379,6 +379,7 @@ let multiplayerGameStarted = false;
 let endGameWatcher = null;
 let endGameShown = false;
 let openEndGameForCurrentMatch = null;
+let exitEndGameForCurrentMatch = null;
 
 function stopRoomCountdown() {
   if (roomCountdownInterval) {
@@ -525,30 +526,14 @@ function startRoomFinishWatcher(roomId) {
 }
 
 async function closeEndGameAndExit() {
-  const roomId = currentRoomId;
+  if (typeof exitEndGameForCurrentMatch === "function") {
+    await exitEndGameForCurrentMatch();
+    return;
+  }
 
   hideEndGameModal();
   stopEndGameWatcher();
   endGameShown = false;
-
-  try {
-    if (roomId) {
-      const roomRef = db.collection("rooms").doc(roomId);
-      const doc = await roomRef.get();
-
-      if (doc.exists) {
-        const room = doc.data();
-
-        if (room?.gameState?.finished) {
-          await roomRef.delete();
-        }
-      }
-    }
-  } catch (e) {
-    console.error("Ошибка удаления завершённой комнаты:", e);
-  }
-
-  await leaveAfterLoss();
 }
   
 function openRooms() {
@@ -895,9 +880,8 @@ function startSharedRoomCountdown(roomId) {
       const nextLeft = Math.max(0, currentLeft - 1);
 
       await roomRef.update({
-        countdownLeft: nextLeft,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+  countdownLeft: nextLeft
+});
 
       if (nextLeft <= 0) {
         await tryStartRoom(roomId);
@@ -1418,6 +1402,32 @@ if (currentRoomId) {
   showEndGameModal(resultData);
 };
 
+exitEndGameForCurrentMatch = async function() {
+  const roomId = currentRoomId;
+
+  hideEndGameModal();
+  stopEndGameWatcher();
+  endGameShown = false;
+
+  try {
+    if (roomId) {
+      const roomRef = db.collection("rooms").doc(roomId);
+      const doc = await roomRef.get();
+
+      if (doc.exists) {
+        const room = doc.data();
+        if (room?.gameState?.finished) {
+          await roomRef.delete();
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Ошибка удаления завершённой комнаты:", e);
+  }
+
+  await leaveAfterLoss();
+};
+
   function spawnObstacle1() {
     if (!isWatching1) obstacles1.push({ x: lane1, z: 1 });
   }
@@ -1886,6 +1896,7 @@ multiplayerGameStarted = false;
   window.gameInitialized = false;
 showExitButton = false;
 openEndGameForCurrentMatch = null;
+exitEndGameForCurrentMatch = null;
 fullResetMenu();
 document.getElementById("createRoomBtn").style.display = "block";
 loadRooms();
