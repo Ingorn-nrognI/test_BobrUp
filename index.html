@@ -378,6 +378,7 @@ let multiplayerGameStarted = false;
 
 let endGameWatcher = null;
 let endGameShown = false;
+let openEndGameForCurrentMatch = null;
 
 function stopRoomCountdown() {
   if (roomCountdownInterval) {
@@ -509,17 +510,44 @@ function startRoomFinishWatcher(roomId) {
     if (!room || !room.gameState) return;
 
     if (room.gameState.finished === true && room.gameState.winner && room.gameState.results) {
-      showEndGameModal({
+      const resultData = {
         winner: room.gameState.winner,
         results: room.gameState.results
-      });
+      };
+
+      if (typeof openEndGameForCurrentMatch === "function") {
+        openEndGameForCurrentMatch(resultData);
+      } else {
+        showEndGameModal(resultData);
+      }
     }
   });
 }
 
 async function closeEndGameAndExit() {
+  const roomId = currentRoomId;
+
   hideEndGameModal();
   stopEndGameWatcher();
+  endGameShown = false;
+
+  try {
+    if (roomId) {
+      const roomRef = db.collection("rooms").doc(roomId);
+      const doc = await roomRef.get();
+
+      if (doc.exists) {
+        const room = doc.data();
+
+        if (room?.gameState?.finished) {
+          await roomRef.delete();
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Ошибка удаления завершённой комнаты:", e);
+  }
+
   await leaveAfterLoss();
 }
   
@@ -1381,6 +1409,15 @@ if (currentRoomId) {
   let exitToMenuBtn = {x: 0, y: 0, w: 0, h: 0};
   let showExitButton = false;
 
+  openEndGameForCurrentMatch = function(resultData) {
+  player.gameOver = false;
+  showExitButton = false;
+  isWatching2 = true;
+  frozenObstacle = null;
+
+  showEndGameModal(resultData);
+};
+
   function spawnObstacle1() {
     if (!isWatching1) obstacles1.push({ x: lane1, z: 1 });
   }
@@ -1847,13 +1884,14 @@ multiplayerGameStarted = false;
   if (syncInterval) clearInterval(syncInterval);
 
   window.gameInitialized = false;
-  showExitButton = false;
-  fullResetMenu();
-  document.getElementById("createRoomBtn").style.display = "block";
-  loadRooms();
+showExitButton = false;
+openEndGameForCurrentMatch = null;
+fullResetMenu();
+document.getElementById("createRoomBtn").style.display = "block";
+loadRooms();
 }
-  
-  async function checkWinner() {
+
+async function checkWinner() {
   if (!currentRoomId || winnerProcessing) return;
 
   const roomRef = db.collection("rooms").doc(currentRoomId);
@@ -1958,11 +1996,13 @@ multiplayerGameStarted = false;
     ctx.textAlign = "left";   // 👈 ВАЖНО: фикс выравнивания
     ctx.fillText("Score: " + score, 20, 40);
     
-    if (player.gameOver) {
-      drawGameOver();
-    }
-    
-    drawExitButton();
+    if (player.gameOver && !endGameShown) {
+  drawGameOver();
+}
+
+if (!endGameShown) {
+  drawExitButton();
+}
     
     if (gameStarted) {
       gameSpeed += 0.00001 * deltaTime;
