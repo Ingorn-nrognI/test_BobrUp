@@ -624,33 +624,43 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
   const name = document.getElementById("nickname").innerText;
 
   const room = {
-  players: [name],
-  status: "waiting",
-  created: firebase.firestore.FieldValue.serverTimestamp(),
-  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-  startAt: null,
-  countdownLeft: null,
-  gameState: {
-    started: false,
-    finished: false,
-    winner: null,
-    playersData: {
-  [name]: {
-    alive: true,
-    lost: false,
-    leftRoom: false,
-    position: 0,
-    score: 0,
-    firstObstacleResolved: false
-  }
-}
-  }
-};
+    players: [name],
+    status: "waiting",
+    created: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    startAt: null,
+    countdownLeft: null,
+    gameState: {
+      started: false,
+      finished: false,
+      winner: null,
+      playersData: {
+        [name]: {
+          alive: true,
+          lost: false,
+          leftRoom: false,
+          position: 0,
+          score: 0,
+          firstObstacleResolved: false
+        }
+      }
+    }
+  };
 
-  const docRef = await db.collection("rooms").add(room);
-  joinRoom(docRef.id);
+  try {
+    const docRef = await db.collection("rooms").add(room);
+
+    currentRoomId = docRef.id;
+    multiplayerGameStarted = false;
+    openRoomScreen(docRef.id);
+  } catch (e) {
+    console.error("Ошибка createRoom:", e);
+    alert("Ошибка создания комнаты");
+    loadRooms();
+  }
 }
-  async function joinRoom(roomId) {
+
+async function joinRoom(roomId) {
   const name = document.getElementById("nickname").innerText;
   const roomRef = db.collection("rooms").doc(roomId);
 
@@ -673,8 +683,8 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
       const maxRoomIdleAge = 3 * 60 * 1000;
 
       if (lastActivity && (now - lastActivity > maxRoomIdleAge)) {
-  throw new Error("ROOM_EXPIRED");
-}
+        throw new Error("ROOM_EXPIRED");
+      }
 
       if (room.status === "finished") {
         throw new Error("ROOM_FINISHED");
@@ -694,20 +704,19 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
         players,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         [`gameState.playersData.${name}`]: {
-  alive: true,
-  lost: false,
-  leftRoom: false,
-  position: 0,
-  score: 0,
-  firstObstacleResolved: false
-}
+          alive: true,
+          lost: false,
+          leftRoom: false,
+          position: 0,
+          score: 0,
+          firstObstacleResolved: false
+        }
       };
 
-      // Ровно в момент, когда стало 2 игрока, запускаем таймер
       if (players.length >= 2 && !room.startAt && !room.gameState?.started) {
-  updateData.startAt = firebase.firestore.FieldValue.serverTimestamp();
-  updateData.countdownLeft = 120;
-}
+        updateData.startAt = firebase.firestore.FieldValue.serverTimestamp();
+        updateData.countdownLeft = 120;
+      }
 
       transaction.update(roomRef, updateData);
     });
@@ -735,7 +744,7 @@ if (players.length === 0 || waitingTooOld || finishedTooOld || playingTooOld) {
     loadRooms();
   }
 }
-
+  
 async function tryStartRoom(roomId) {
   const roomRef = db.collection("rooms").doc(roomId);
 
@@ -1284,14 +1293,7 @@ if (gameResizeHandler) {
   window.removeEventListener("resize", gameResizeHandler);
 }
 
-gameResizeHandler = () => {
-  canvas.width = canvas.clientWidth || window.innerWidth;
-  canvas.height = canvas.clientHeight || window.innerHeight;
-
-  const newLane2 = canvas.width * roadCenter;
-  player.x = newLane2 - player.width / 2;
-};
-
+gameResizeHandler = () => {};
 window.addEventListener("resize", gameResizeHandler);
 
   // Препятствия
@@ -1314,7 +1316,6 @@ if (currentRoomId) {
   const roomRef = db.collection("rooms").doc(currentRoomId);
 
   roomRef.update({
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     [`gameState.playersData.${name}.position`]: playerState.position,
     [`gameState.playersData.${name}.alive`]: playerState.alive,
     [`gameState.playersData.${name}.score`]: score,
@@ -1325,13 +1326,12 @@ if (currentRoomId) {
   if (!currentRoomId) return;
 
   roomRef.update({
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     [`gameState.playersData.${name}.position`]: playerState.position,
     [`gameState.playersData.${name}.alive`]: playerState.alive,
     [`gameState.playersData.${name}.score`]: score,
     [`gameState.playersData.${name}.firstObstacleResolved`]: firstObstacleResolved
   }).catch(err => console.error("Ошибка обновления позиции:", err));
-}, 400);
+}, 800);
 }
 
   // ❗ При выходе из игры или комнаты нужно очищать интервал
