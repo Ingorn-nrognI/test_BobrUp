@@ -30,10 +30,20 @@ body {
 .top-bar {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   padding: 20px;
   background: rgba(0,0,0,0.3);
   color: white;
   font-size: 20px;
+  position: relative;
+  z-index: 20;
+}
+
+.top-bar-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .settings {
@@ -41,7 +51,36 @@ body {
   font-size: 24px;
 }
 
-/* Центр */
+.mode-back-btn {
+  display: none;
+  padding: 8px 14px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.35);
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.mode-back-btn.visible {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Экраны меню */
+.menu-screen {
+  display: none;
+  flex: 1;
+  position: relative;
+}
+
+.menu-screen.active {
+  display: flex;
+  flex-direction: column;
+}
+
 .main {
   flex: 1;
   display: flex;
@@ -53,9 +92,205 @@ body {
   color: #FFD700;
   text-shadow: 3px 3px 8px rgba(0,0,0,0.6);
   letter-spacing: 2px;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-/* Нижнее меню */
+.mode-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 58px;
+  font-weight: bold;
+  font-family: 'Arial Black', sans-serif;
+  color: #FFD700;
+  text-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.start-play-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  width: min(45%, 260px);
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 25;
+}
+
+.start-play-row {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(calc(-50% + 150px));
+  display: flex;
+  align-items: center;
+  z-index: 25;
+}
+
+.main-play-btn-wrap {
+  width: 100%;
+}
+
+.main-play-btn {
+  width: 100%;
+  height: 54px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  cursor: pointer;
+  border-radius: 28px;
+  background: #28a745;
+  font-weight: bold;
+  font-size: 22px;
+  transition: 0.2s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-sizing: border-box;
+}
+
+.main-play-btn:hover {
+  background: #23913d;
+}
+
+.main-book-btn {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  border-radius: 50%;
+  background: #444;
+  font-size: 28px;
+  transition: 0.2s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.main-book-btn:hover {
+  background: #555;
+}
+
+.history-panel {
+  display: none;
+  position: fixed;
+  top: 96px;
+  left: 50%;
+  width: min(88vw, 560px);
+  transform: translateX(-50%);
+  right: auto;
+  bottom: 92px;
+  padding: 22px 22px 22px 18px;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.82);
+  color: white;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  box-sizing: border-box;
+  z-index: 40;
+  overflow: hidden;
+}
+
+.history-scroll-area {
+  height: calc(100% - 54px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 16px;
+  margin-right: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 215, 0, 0.82) transparent;
+  scrollbar-gutter: stable;
+}
+
+.history-scroll-area::-webkit-scrollbar {
+  width: 12px;
+}
+
+.history-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px 0;
+  border-radius: 999px;
+}
+
+.history-scroll-area::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 226, 96, 0.98), rgba(212, 160, 0, 0.98));
+  border-radius: 999px;
+  border: 3px solid rgba(0, 0, 0, 0.62);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 244, 180, 0.22),
+    0 0 0 1px rgba(255, 215, 0, 0.18);
+}
+
+.history-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 235, 128, 1), rgba(226, 173, 0, 1));
+}
+
+.history-scroll-area::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.history-panel.open {
+  display: block;
+}
+
+.history-panel-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 14px;
+}
+
+.history-panel-text {
+  font-size: 18px;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.92);
+}
+
+.mode-popup {
+  display: none;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.75);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-sizing: border-box;
+}
+
+.mode-popup.open {
+  display: block;
+}
+
+.mode-popup-btn {
+  width: 100%;
+  padding: 16px 14px;
+  text-align: center;
+  color: white;
+  cursor: pointer;
+  border-radius: 18px;
+  background: #444;
+  font-weight: bold;
+  transition: 0.2s;
+  box-sizing: border-box;
+}
+
+.mode-popup-btn:hover {
+  background: #555;
+}
+
+/* Нижнее меню режима */
 .bottom-bar {
   position: fixed;
   bottom: 20px;
@@ -70,6 +305,10 @@ body {
   border-radius: 50px;
   box-sizing: border-box;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.mode-bottom-bar {
+  z-index: 25;
 }
 
 .bottom-btn {
@@ -92,6 +331,7 @@ body {
 .bottom-btn:hover {
   background: #555;
 }
+
 /* Меню */
 #menu {
   position: absolute;
@@ -167,23 +407,7 @@ body {
   z-index: 10 !important;
 }
 
-.menu-reset .main {
-  font-size: 24px !important;
-  color: white !important;
-  flex: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.menu-reset .top-bar {
-  display: flex !important;
-  justify-content: space-between !important;
-  padding: 15px !important;
-  color: white !important;
-  font-size: 18px !important;
-}
-  /* ===== КОМНАТЫ ===== */
+/* ===== КОМНАТЫ ===== */
 #roomsModal {
   display: none;
   position: fixed;
@@ -296,24 +520,130 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+
+.history-match-card {
+  background: #161616;
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+  overflow: hidden;
+}
+
+.history-match-mode {
+  font-size: 16px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 6px;
+}
+
+.history-match-result {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-transform: lowercase;
+}
+
+.history-match-result.win {
+  color: #28a745;
+}
+
+.history-match-result.lose {
+  color: #dc3545;
+}
+
+.history-match-result.draw {
+  color: #9aa0a6;
+}
+
+.history-match-date {
+  font-size: 14px;
+  color: rgba(255,255,255,0.82);
+}
+
+.history-match-details {
+  margin-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  padding-top: 12px;
+}
+
+.history-match-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.history-match-table th,
+.history-match-table td {
+  text-align: left;
+  padding: 8px 6px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  word-break: break-word;
+}
+
+.history-match-table th {
+  color: #FFD700;
+  font-size: 13px;
+}
+
+.history-match-table td:last-child,
+.history-match-table th:last-child {
+  text-align: right;
+}
+
 </style>
 </head>
 
 <body>
 
 <!-- МЕНЮ -->
-<div id="menu">
+<div id="menu" onclick="handleMenuBackgroundClick(event)">
   <div class="top-bar">
-    <div id="nickname">Игрок</div>
+    <div class="top-bar-left">
+      <div id="nickname">Игрок</div>
+      <div id="modeBackButton" class="mode-back-btn" onclick="exitGameMode()">← Назад</div>
+    </div>
     <div class="settings" onclick="openSettings()">⚙️</div>
   </div>
 
-  <div class="main">BobrUp</div>
+  <div id="homeScreen" class="menu-screen active">
+    <div class="main">Bobr World</div>
 
-  <div class="bottom-bar">
-    <div class="bottom-btn" onclick="openLeaderboard()">📊 Таблица</div>
-    <div class="bottom-btn play" onclick="openRooms()">▶ Играть</div>
-    <div class="bottom-btn" onclick="openSkins()">🎨 Скины</div>
+    <div class="start-play-wrap">
+      <div class="main-play-btn-wrap">
+        <div id="modePopup" class="mode-popup">
+          <div class="mode-popup-btn" onclick="enterBobrRunMode(event)">Bobr Run</div>
+        </div>
+
+        <div id="mainPlayButton" class="main-play-btn" onclick="toggleModePopup(event)">▶ Играть</div>
+      </div>
+    </div>
+
+    <div class="start-play-row">
+      <div class="main-book-btn" onclick="toggleHistoryPanel(event)">📖</div>
+    </div>
+
+    <div id="historyPanel" class="history-panel" onclick="event.stopPropagation()">
+      <div class="history-panel-title">История игр</div>
+      <div class="history-scroll-area">
+        <div class="history-panel-text">
+          Здесь будет история игр.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bobrRunScreen" class="menu-screen">
+    <div class="mode-title">Bobr Run</div>
+
+    <div class="bottom-bar mode-bottom-bar">
+      <div class="bottom-btn" onclick="openLeaderboard()">📊 Таблица</div>
+      <div class="bottom-btn play" onclick="openRooms()">▶ Играть</div>
+      <div class="bottom-btn" onclick="openSkins()">🎨 Скины</div>
+    </div>
   </div>
 </div>
 
@@ -345,7 +675,7 @@ body {
   <!-- Финальное окно -->
 <div id="endGameModal">
   <div class="endGameBox">
-    <div class="endGameTitle">Победитель</div>
+    <div id="endGameTitle" class="endGameTitle">Победитель</div>
     <div id="endGameWinnerName" class="endGameWinnerName">—</div>
 
     <table class="endGamePlaces">
@@ -379,8 +709,45 @@ let multiplayerGameStarted = false;
 
 let endGameWatcher = null;
 let endGameShown = false;
+let isClosingEndGame = false;
+let endGameExitHandled = false;
 let openEndGameForCurrentMatch = null;
 let exitEndGameForCurrentMatch = null;
+let activeLeaveAfterLossHandler = null;
+let leaveAfterLossInProgress = false;
+let lastRoomMaintenanceAt = 0;
+let lastRoomStartAttemptAt = 0;
+
+const ROOM_MAINTENANCE_THROTTLE_MS = 5000;
+const ROOM_START_THROTTLE_MS = 1200;
+
+function isCurrentPlayerHost(room) {
+  if (!room) return false;
+  const { id } = getCurrentPlayer();
+  return String(room.hostId || "") === String(id);
+}
+
+async function scheduleRoomHostTasks(roomId, room, { force = false } = {}) {
+  if (!roomId || currentRoomId !== roomId || !room) return;
+  if (!isCurrentPlayerHost(room)) return;
+
+  const now = Date.now();
+
+  if (force || now - lastRoomMaintenanceAt >= ROOM_MAINTENANCE_THROTTLE_MS) {
+    lastRoomMaintenanceAt = now;
+    await cleanupInactivePlayers(roomId);
+  }
+
+  const roomStarted = room?.gameState?.started === true || room?.status === "playing";
+  const roomFinished = room?.gameState?.finished === true || room?.status === "finished";
+
+  if (roomStarted || roomFinished) return;
+
+  if (force || now - lastRoomStartAttemptAt >= ROOM_START_THROTTLE_MS) {
+    lastRoomStartAttemptAt = now;
+    await tryStartRoom(roomId);
+  }
+}
 
 let gameResizeHandler = null;
 let gameBeforeUnloadHandler = null;
@@ -396,6 +763,10 @@ let roomVisibilityHandler = null;
 let roomPageHideHandler = null;
 let roomReadyPollInterval = null;
 let gameCountdownStartListener = null;
+let historyLoading = false;
+let expandedHistoryMatchId = null;
+
+const GAME_READY_BUFFER_MS = 350;
   
 const ROOM_OFFLINE_GRACE_MS = 60 * 1000;              // 1 минута на возврат
 const ROOM_PRESENCE_PING_MS = 15000;                  // heartbeat раз в 15 сек
@@ -533,7 +904,7 @@ async function touchRoomPresence(roomId, { markAction = false } = {}) {
   try {
     await roomRef.update(updateData);
   } catch (e) {
-    console.log("touchRoomPresence skip:", e?.message || e);
+    // touchRoomPresence skipped
   }
 }
 
@@ -552,7 +923,7 @@ async function markRoomOffline(roomId) {
       [`gameState.playersData.${id}.lastSeen`]: now
     });
   } catch (e) {
-    console.log("markRoomOffline skip:", e?.message || e);
+    // markRoomOffline skipped
   }
 }
 
@@ -730,6 +1101,9 @@ function startRoomPresence(roomId) {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+if (firebase.firestore && typeof firebase.firestore.setLogLevel === "function") {
+  firebase.firestore.setLogLevel("silent");
+}
   
 // Получаем ник из Telegram
 // Получаем пользователя из Telegram
@@ -748,7 +1122,9 @@ async function markPlayerReadyForGame(roomId) {
   try {
     await roomRef.update({
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      [`gameState.playersReady.${id}`]: true
+      [`gameState.playersReady.${id}`]: true,
+      [`gameState.playersData.${id}.gameLoaded`]: true,
+      [`gameState.playersData.${id}.gameLoadedAt`]: Date.now()
     });
   } catch (e) {
     console.error("Ошибка markPlayerReadyForGame:", e);
@@ -801,6 +1177,345 @@ function getCurrentPlayer() {
 const currentPlayer = getCurrentPlayer();
 document.getElementById("nickname").innerText = currentPlayer.name;
 
+async function waitForRoomMembership(roomRef, playerId, attempts = 12, delayMs = 200) {
+  for (let i = 0; i < attempts; i++) {
+    const doc = await roomRef.get();
+    if (doc.exists) {
+      const room = doc.data() || {};
+      const ids = Array.isArray(room.playerIds) ? room.playerIds.filter(Boolean) : [];
+      if (ids.includes(playerId)) {
+        return room;
+      }
+    }
+
+    if (i < attempts - 1) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  return null;
+}
+
+let currentMenuView = "home";
+
+function setMenuView(view) {
+  currentMenuView = view;
+
+  const homeScreen = document.getElementById("homeScreen");
+  const bobrRunScreen = document.getElementById("bobrRunScreen");
+  const backButton = document.getElementById("modeBackButton");
+  const modePopup = document.getElementById("modePopup");
+  const historyPanel = document.getElementById("historyPanel");
+
+  if (homeScreen) {
+    homeScreen.classList.toggle("active", view === "home");
+  }
+
+  if (bobrRunScreen) {
+    bobrRunScreen.classList.toggle("active", view === "mode");
+  }
+
+  if (backButton) {
+    backButton.classList.toggle("visible", view === "mode");
+  }
+
+  if (modePopup) {
+    modePopup.classList.remove("open");
+  }
+
+  if (historyPanel) {
+    historyPanel.classList.remove("open");
+  }
+}
+
+function toggleModePopup(event) {
+  if (event) event.stopPropagation();
+
+  const modePopup = document.getElementById("modePopup");
+  if (!modePopup) return;
+
+  modePopup.classList.toggle("open");
+}
+
+function closeModePopup() {
+  const modePopup = document.getElementById("modePopup");
+  if (!modePopup) return;
+
+  modePopup.classList.remove("open");
+}
+
+function toggleHistoryPanel(event) {
+  if (event) event.stopPropagation();
+
+  const historyPanel = document.getElementById("historyPanel");
+  if (!historyPanel) return;
+
+  const willOpen = !historyPanel.classList.contains("open");
+  historyPanel.classList.toggle("open");
+
+  if (willOpen) {
+    loadGameHistory();
+  }
+}
+
+function closeHistoryPanel() {
+  const historyPanel = document.getElementById("historyPanel");
+  if (!historyPanel) return;
+
+  historyPanel.classList.remove("open");
+}
+
+function formatHistoryDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function getHistoryCollectionRef(playerId) {
+  return db.collection("users").doc(String(playerId)).collection("history");
+}
+
+function getHistoryResultMeta(item) {
+  const winnerValue = String(item?.winner || "").trim().toLowerCase();
+  if (winnerValue === "ничья") {
+    return { label: "ничья", className: "draw" };
+  }
+
+  if (item?.youWon) {
+    return { label: "выиграл", className: "win" };
+  }
+
+  return { label: "проиграл", className: "lose" };
+}
+
+function toggleHistoryMatchDetails(matchId, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  expandedHistoryMatchId = expandedHistoryMatchId === matchId ? null : matchId;
+  loadGameHistory();
+}
+
+function renderHistoryEntries(entries) {
+  const panel = document.getElementById("historyPanel");
+  if (!panel) return;
+
+  const title = `<div class="history-panel-title">История игр</div>`;
+
+  if (!Array.isArray(entries) || entries.length === 0) {
+    panel.innerHTML = `${title}<div class="history-scroll-area"><div class="history-panel-text">Пока нет сыгранных матчей.</div></div>`;
+    return;
+  }
+
+  const items = entries.map((item, index) => {
+    const matchId = String(item.roomId || item.savedAt || index);
+    const isExpanded = expandedHistoryMatchId === matchId;
+    const resultMeta = getHistoryResultMeta(item);
+    const playedAtText = formatHistoryDate(item.playedAt);
+    const modeLabel = item.mode || "Bobr Run";
+
+    const resultsRows = Array.isArray(item.results)
+      ? item.results
+          .slice()
+          .sort((a, b) => Number(a.place || 0) - Number(b.place || 0))
+          .map((row) => `
+            <tr>
+              <td>${Number(row.place || 0)}</td>
+              <td>${row.name || "Игрок"}</td>
+              <td>${Number(row.score || 0)}</td>
+            </tr>
+          `)
+          .join("")
+      : "";
+
+    const detailsHtml = isExpanded ? `
+      <div class="history-match-details">
+        <table class="history-match-table">
+          <thead>
+            <tr>
+              <th>Место</th>
+              <th>Игрок</th>
+              <th>Счёт</th>
+            </tr>
+          </thead>
+          <tbody>${resultsRows}</tbody>
+        </table>
+      </div>
+    ` : "";
+
+    return `
+      <div class="history-match-card" onclick="toggleHistoryMatchDetails('${matchId.replace("'", "&#39;")}', event)">
+        <div class="history-match-mode">Режим: ${modeLabel}</div>
+        <div class="history-match-result ${resultMeta.className}">${resultMeta.label}</div>
+        <div class="history-match-date">${playedAtText}</div>
+        ${detailsHtml}
+      </div>
+    `;
+  }).join("");
+
+  panel.innerHTML = `${title}<div class="history-scroll-area"><div class="history-panel-text">${items}</div></div>`;
+}
+
+async function loadGameHistory() {
+  const panel = document.getElementById("historyPanel");
+  if (!panel || historyLoading) return;
+
+  historyLoading = true;
+  panel.innerHTML = `
+    <div class="history-panel-title">История игр</div>
+    <div class="history-scroll-area"><div class="history-panel-text">Загрузка...</div></div>
+  `;
+
+  try {
+    const { id } = getCurrentPlayer();
+    const snapshot = await getHistoryCollectionRef(id)
+      .orderBy("playedAt", "desc")
+      .limit(20)
+      .get();
+
+    const entries = [];
+    snapshot.forEach((doc) => {
+      entries.push(doc.data() || {});
+    });
+
+    renderHistoryEntries(entries);
+  } catch (e) {
+    console.error("Ошибка загрузки истории игр:", e);
+    panel.innerHTML = `
+      <div class="history-panel-title">История игр</div>
+      <div class="history-scroll-area"><div class="history-panel-text">Не удалось загрузить историю игр.</div></div>
+    `;
+  } finally {
+    historyLoading = false;
+  }
+}
+
+async function saveMatchHistoryForAllPlayers(roomId, roomData) {
+  if (!roomId || !roomData?.gameState?.finished || !Array.isArray(roomData?.gameState?.results)) {
+    return;
+  }
+
+  const results = roomData.gameState.results
+    .slice()
+    .sort((a, b) => Number(a.place || 0) - Number(b.place || 0))
+    .map(item => ({
+      place: Number(item.place || 0),
+      name: item.name || "Игрок",
+      score: Number(item.score || 0)
+    }));
+
+  const playerIds = Array.isArray(roomData.playerIds) ? roomData.playerIds.filter(Boolean) : [];
+  if (playerIds.length === 0) return;
+
+  const playedAt =
+    getRoomTimeMs(roomData.gameState?.historySavedAt) ||
+    getRoomTimeMs(roomData.updatedAt) ||
+    Date.now();
+
+  const batch = db.batch();
+
+  playerIds.forEach((pid) => {
+    const playerName =
+      roomData.playerNames?.[pid] ||
+      roomData.gameState?.playersData?.[pid]?.name ||
+      "Игрок";
+
+    const yourResult = results.find(r => r.name === playerName) || null;
+
+    const historyRef = getHistoryCollectionRef(pid).doc(roomId);
+    batch.set(historyRef, {
+      roomId,
+      playedAt,
+      mode: "Bobr Run",
+      winner: roomData.gameState.winner || "—",
+      results,
+      yourName: playerName,
+      yourPlace: yourResult?.place || null,
+      yourScore: Number(yourResult?.score || 0),
+      youWon: yourResult?.place === 1 && String(roomData.gameState.winner || "").toLowerCase() !== "ничья",
+      savedAt: Date.now()
+    }, { merge: true });
+  });
+
+  await batch.commit();
+
+  try {
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomDoc = await roomRef.get();
+
+    if (roomDoc.exists) {
+      await roomRef.update({
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        "gameState.historySaved": true,
+        "gameState.historySavedAt": firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  } catch (e) {
+    console.error("Ошибка отметки сохранённой истории:", e);
+  }
+}
+
+async function ensureCurrentMatchHistorySaved(roomId, roomData) {
+  if (!roomId || !roomData?.gameState?.finished || !Array.isArray(roomData?.gameState?.results)) {
+    return;
+  }
+
+  try {
+    await saveMatchHistoryForAllPlayers(roomId, roomData);
+  } catch (e) {
+    console.error("Ошибка сохранения истории матча:", e);
+  }
+}
+
+function toggleHistoryGameDetails() {
+  toggleHistoryPanel();
+}
+
+function handleMenuBackgroundClick(event) {
+  const modePopup = document.getElementById("modePopup");
+  const mainPlayButton = document.getElementById("mainPlayButton");
+  const historyPanel = document.getElementById("historyPanel");
+  const bookButton = document.querySelector(".main-book-btn");
+
+  if (modePopup && mainPlayButton) {
+    const clickedInsidePopup = modePopup.contains(event.target);
+    const clickedPlayButton = mainPlayButton.contains(event.target);
+
+    if (!clickedInsidePopup && !clickedPlayButton) {
+      closeModePopup();
+    }
+  }
+
+  if (historyPanel && bookButton) {
+    const clickedInsideHistory = historyPanel.contains(event.target);
+    const clickedBookButton = bookButton.contains(event.target);
+
+    if (!clickedInsideHistory && !clickedBookButton) {
+      closeHistoryPanel();
+    }
+  }
+}
+
+function enterBobrRunMode(event) {
+  if (event) event.stopPropagation();
+  setMenuView("mode");
+}
+
+function exitGameMode() {
+  closeRooms();
+  setMenuView("home");
+}
+
 // ========================
 // КНОПКИ МЕНЮ
 // ========================
@@ -828,15 +1543,22 @@ function startGame() {
 }
 
 function showEndGameModal(resultData) {
-  if (!resultData || endGameShown) return;
+  if (!resultData || endGameShown || isClosingEndGame) return;
 
   const modal = document.getElementById("endGameModal");
+  const titleEl = document.getElementById("endGameTitle");
   const winnerNameEl = document.getElementById("endGameWinnerName");
   const placesBody = document.getElementById("endGamePlacesBody");
 
-  if (!modal || !winnerNameEl || !placesBody) return;
+  if (!modal || !titleEl || !winnerNameEl || !placesBody) return;
 
-  winnerNameEl.textContent = resultData.winner || "—";
+  const winnerLabel = String(resultData.winner || "").trim();
+  const isDraw = winnerLabel.toLowerCase() === "ничья";
+
+  titleEl.textContent = isDraw ? "Ничья" : "Победитель";
+  winnerNameEl.textContent = isDraw ? "" : (winnerLabel || "—");
+  winnerNameEl.style.display = isDraw ? "none" : "block";
+
   placesBody.innerHTML = "";
 
   const places = buildEndGamePlaces(resultData.results);
@@ -851,13 +1573,42 @@ function showEndGameModal(resultData) {
     placesBody.appendChild(tr);
   });
 
+  resetEndGameUIState();
+  isClosingEndGame = false;
   modal.style.display = "flex";
   endGameShown = true;
 }
 
 function hideEndGameModal() {
   const modal = document.getElementById("endGameModal");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.style.display = "none";
+    modal.style.visibility = "hidden";
+    modal.style.pointerEvents = "none";
+    modal.setAttribute("aria-hidden", "true");
+  }
+  endGameShown = false;
+}
+
+function forceCloseEndGameUI() {
+  const modal = document.getElementById("endGameModal");
+  if (!modal) return;
+
+  modal.style.display = "none";
+  modal.style.visibility = "hidden";
+  modal.style.pointerEvents = "none";
+  modal.setAttribute("aria-hidden", "true");
+  endGameShown = false;
+}
+
+function resetEndGameUIState() {
+  const modal = document.getElementById("endGameModal");
+  if (!modal) return;
+
+  modal.style.visibility = "";
+  modal.style.pointerEvents = "";
+  modal.removeAttribute("aria-hidden");
+  isClosingEndGame = false;
 }
 
 function stopEndGameWatcher() {
@@ -867,18 +1618,75 @@ function stopEndGameWatcher() {
   }
 }
 
+async function runActiveLeaveAfterLoss() {
+  if (leaveAfterLossInProgress) return;
+
+  if (typeof activeLeaveAfterLossHandler === "function") {
+    await activeLeaveAfterLossHandler();
+    return;
+  }
+
+  leaveAfterLossInProgress = true;
+
+  forceCloseEndGameUI();
+  stopEndGameWatcher();
+  currentRoomId = null;
+  resetServerClockSync();
+  stopRoomCountdown();
+  stopRoomPresence();
+  stopRoomReadyPoll();
+  stopGameCountdownStartListener();
+  multiplayerGameStarted = false;
+  endGameShown = false;
+  isClosingEndGame = false;
+  endGameExitHandled = false;
+  openEndGameForCurrentMatch = null;
+  exitEndGameForCurrentMatch = null;
+  activeLeaveAfterLossHandler = null;
+
+  const menu = document.getElementById("menu");
+  const game = document.getElementById("game");
+  const createRoomBtn = document.getElementById("createRoomBtn");
+
+  if (menu) menu.style.display = "flex";
+  if (game) game.style.display = "none";
+  if (createRoomBtn) createRoomBtn.style.display = "block";
+
+  closeRooms();
+  setMenuView("mode");
+  loadRooms();
+  leaveAfterLossInProgress = false;
+}
+
 function startRoomFinishWatcher(roomId) {
   stopEndGameWatcher();
+  endGameExitHandled = false;
 
   const roomRef = db.collection("rooms").doc(roomId);
 
-  endGameWatcher = roomRef.onSnapshot((doc) => {
-    if (!doc.exists) return;
+  endGameWatcher = roomRef.onSnapshot(async (doc) => {
+    if (!doc.exists) {
+      if (!endGameExitHandled && currentRoomId === roomId) {
+        endGameExitHandled = true;
+        await runActiveLeaveAfterLoss();
+      }
+      return;
+    }
 
     const room = doc.data();
     if (!room || !room.gameState) return;
 
+    if (room.gameState.exitRequested === true) {
+      if (!endGameExitHandled && currentRoomId === roomId) {
+        endGameExitHandled = true;
+        await runActiveLeaveAfterLoss();
+      }
+      return;
+    }
+
     if (room.gameState.finished === true && room.gameState.winner && room.gameState.results) {
+      await ensureCurrentMatchHistorySaved(roomId, room);
+
       const resultData = {
         winner: room.gameState.winner,
         results: room.gameState.results
@@ -894,14 +1702,44 @@ function startRoomFinishWatcher(roomId) {
 }
 
 async function closeEndGameAndExit() {
-  if (typeof exitEndGameForCurrentMatch === "function") {
-    await exitEndGameForCurrentMatch();
-    return;
+  if (isClosingEndGame) return;
+  isClosingEndGame = true;
+
+  const roomId = currentRoomId;
+  const roomRef = roomId ? db.collection("rooms").doc(roomId) : null;
+
+  if (roomRef) {
+    try {
+      await roomRef.update({
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        "gameState.exitRequested": true,
+        "gameState.exitRequestedAt": firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) {
+      console.log("Пропуск общего выхода из финального окна:", e?.message || e);
+    }
   }
 
-  hideEndGameModal();
+  forceCloseEndGameUI();
   stopEndGameWatcher();
-  endGameShown = false;
+  endGameExitHandled = true;
+
+  const savedExitHandler = exitEndGameForCurrentMatch;
+  openEndGameForCurrentMatch = null;
+  exitEndGameForCurrentMatch = null;
+
+  try {
+    if (typeof savedExitHandler === "function") {
+      await savedExitHandler();
+    } else {
+      await runActiveLeaveAfterLoss();
+    }
+  } finally {
+    forceCloseEndGameUI();
+    setTimeout(forceCloseEndGameUI, 0);
+    setTimeout(forceCloseEndGameUI, 120);
+    setTimeout(() => { isClosingEndGame = false; }, 200);
+  }
 }
   
 function openRooms() {
@@ -1034,7 +1872,9 @@ async function createRoom() {
           online: true,
           lastSeen: now,
           lastActionAt: now,
-          closedAt: null
+          closedAt: null,
+          gameLoaded: false,
+          gameLoadedAt: null
         }
       }
     }
@@ -1105,7 +1945,7 @@ async function createRoom() {
 }
   
 async function joinRoom(roomId) {
-  if (isJoiningRoom) return;
+  if (isJoiningRoom || isCreatingRoom) return;
   isJoiningRoom = true;
 
   const { id, name } = getCurrentPlayer();
@@ -1113,11 +1953,16 @@ async function joinRoom(roomId) {
   const list = document.getElementById("roomsList");
   const createBtn = document.getElementById("createRoomBtn");
 
-  createBtn.style.display = "none";
-  list.innerHTML = `
-    Подключение к комнате...<br><br>
-    Игрок: ${name}
-  `;
+  if (createBtn) {
+    createBtn.style.display = "none";
+  }
+
+  if (list) {
+    list.innerHTML = `
+      Подключение к комнате...<br><br>
+      Игрок: ${name}
+    `;
+  }
 
   try {
     await cleanupInactivePlayers(roomId);
@@ -1135,90 +1980,97 @@ async function joinRoom(roomId) {
         throw new Error("ROOM_DATA_ERROR");
       }
 
-      if (room.status === "finished") {
+      if (room.status === "finished" || room.gameState?.finished === true) {
         throw new Error("ROOM_FINISHED");
       }
 
-      if (room.playerIds.length >= 3 && !room.playerIds.includes(id)) {
+      const existingIds = Array.isArray(room.playerIds) ? room.playerIds.filter(Boolean) : [];
+      const alreadyInRoom = existingIds.includes(id);
+
+      if (existingIds.length >= 3 && !alreadyInRoom) {
         throw new Error("ROOM_FULL");
       }
 
-      const playerIds = Array.isArray(room.playerIds) ? [...room.playerIds] : [];
-      const playerNames = room.playerNames || {};
-
-      if (!playerIds.includes(id)) {
-        playerIds.push(id);
-      }
-
-      playerNames[id] = name;
-
+      const nextPlayerIds = alreadyInRoom ? [...existingIds] : [...existingIds, id];
       const now = Date.now();
 
       const updateData = {
-        playerIds,
-        playerNames,
+        playerIds: nextPlayerIds,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        [`playerNames.${id}`]: name,
         [`gameState.playersReady.${id}`]: false,
-        [`gameState.playersData.${id}`]: {
-          name,
-          alive: true,
-          lost: false,
-          leftRoom: false,
-          position: 0,
-          score: 0,
-          firstObstacleResolved: false,
-          online: true,
-          lastSeen: now,
-          lastActionAt: now,
-          closedAt: null
-        }
+        [`gameState.playersData.${id}.name`]: name,
+        [`gameState.playersData.${id}.alive`]: true,
+        [`gameState.playersData.${id}.lost`]: false,
+        [`gameState.playersData.${id}.leftRoom`]: false,
+        [`gameState.playersData.${id}.position`]: 0,
+        [`gameState.playersData.${id}.score`]: 0,
+        [`gameState.playersData.${id}.firstObstacleResolved`]: false,
+        [`gameState.playersData.${id}.online`]: true,
+        [`gameState.playersData.${id}.lastSeen`]: now,
+        [`gameState.playersData.${id}.lastActionAt`]: now,
+        [`gameState.playersData.${id}.closedAt`]: null,
+        [`gameState.playersData.${id}.gameLoaded`]: false,
+        [`gameState.playersData.${id}.gameLoadedAt`]: null
       };
 
-      if (playerIds.length >= 2 && !room.startAt && !room.gameState?.started) {
+      if (nextPlayerIds.length >= 2 && !room.startAt && !room.gameState?.started) {
         updateData.startAt = firebase.firestore.FieldValue.serverTimestamp();
       }
 
       transaction.update(roomRef, updateData);
     });
 
+    let confirmedRoom = await waitForRoomMembership(roomRef, id, 20, 250);
+
+    if (!confirmedRoom) {
+      const fallbackDoc = await roomRef.get();
+      if (!fallbackDoc.exists) {
+        throw new Error("ROOM_DELETED");
+      }
+
+      const fallbackRoom = fallbackDoc.data() || {};
+      const fallbackIds = Array.isArray(fallbackRoom.playerIds) ? fallbackRoom.playerIds.filter(Boolean) : [];
+
+      if (!fallbackIds.includes(id)) {
+        try {
+          const now = Date.now();
+          await roomRef.update({
+            playerIds: [...fallbackIds, id],
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            [`playerNames.${id}`]: name,
+            [`gameState.playersReady.${id}`]: false,
+            [`gameState.playersData.${id}.name`]: name,
+            [`gameState.playersData.${id}.alive`]: true,
+            [`gameState.playersData.${id}.lost`]: false,
+            [`gameState.playersData.${id}.leftRoom`]: false,
+            [`gameState.playersData.${id}.position`]: 0,
+            [`gameState.playersData.${id}.score`]: 0,
+            [`gameState.playersData.${id}.firstObstacleResolved`]: false,
+            [`gameState.playersData.${id}.online`]: true,
+            [`gameState.playersData.${id}.lastSeen`]: now,
+            [`gameState.playersData.${id}.lastActionAt`]: now,
+            [`gameState.playersData.${id}.closedAt`]: null,
+            [`gameState.playersData.${id}.gameLoaded`]: false,
+            [`gameState.playersData.${id}.gameLoadedAt`]: null
+          });
+        } catch (repairError) {
+          console.error("Ошибка резервного входа в комнату:", repairError);
+        }
+
+        confirmedRoom = await waitForRoomMembership(roomRef, id, 10, 250);
+      } else {
+        confirmedRoom = fallbackRoom;
+      }
+    }
+
+    if (!confirmedRoom) {
+      throw new Error("JOIN_NOT_CONFIRMED");
+    }
+
     currentRoomId = roomId;
     multiplayerGameStarted = false;
-
-    const now = Date.now();
-
-    openRoomScreen(roomId, {
-      hostId: null,
-      playerIds: [id],
-      playerNames: { [id]: name },
-      status: "waiting",
-      created: now,
-      updatedAt: now,
-      startAt: null,
-        gameState: {
-        started: false,
-        finished: false,
-        winner: null,
-        countdownStartedAt: null,
-        playersReady: {
-          [id]: false
-        },
-        playersData: {
-          [id]: {
-            name,
-            alive: true,
-            lost: false,
-            leftRoom: false,
-            position: 0,
-            score: 0,
-            firstObstacleResolved: false,
-            online: true,
-            lastSeen: now,
-            lastActionAt: now,
-            closedAt: null
-          }
-        }
-      }
-    });
+    openRoomScreen(roomId, confirmedRoom);
 
   } catch (e) {
     if (currentRoomListener) {
@@ -1228,8 +2080,11 @@ async function joinRoom(roomId) {
 
     stopRoomCountdown();
     stopRoomPresence();
-    document.getElementById("createRoomBtn").style.display = "block";
-    
+
+    if (document.getElementById("createRoomBtn")) {
+      document.getElementById("createRoomBtn").style.display = "block";
+    }
+
     if (e.message === "ROOM_DELETED") {
       alert("Комната уже удалена");
     } else if (e.message === "ROOM_DATA_ERROR") {
@@ -1238,6 +2093,8 @@ async function joinRoom(roomId) {
       alert("Игра в комнате уже закончена");
     } else if (e.message === "ROOM_FULL") {
       alert("Комната заполнена");
+    } else if (e.message === "JOIN_NOT_CONFIRMED") {
+      alert("Не удалось войти в комнату. Попробуй ещё раз.");
     } else if (e.code === "resource-exhausted") {
       alert("Firebase перегружен или превышен лимит. Попробуй позже.");
     } else {
@@ -1251,7 +2108,7 @@ async function joinRoom(roomId) {
     isJoiningRoom = false;
   }
 }
-  
+
 async function tryStartRoom(roomId) {
   const roomRef = db.collection("rooms").doc(roomId);
 
@@ -1348,7 +2205,8 @@ function startSharedRoomCountdown(roomId) {
 
   stopRoomCountdown();
   startRoomPresence(roomId);
-  cleanupInactivePlayers(roomId);
+  lastRoomMaintenanceAt = 0;
+  lastRoomStartAttemptAt = 0;
 
   let latestRoom = optimisticRoom;
 
@@ -1487,8 +2345,7 @@ function startSharedRoomCountdown(roomId) {
       return;
     }
 
-    await cleanupInactivePlayers(roomId);
-    await tryStartRoom(roomId);
+    await scheduleRoomHostTasks(roomId, latestRoom);
   });
 
   roomCountdownInterval = setInterval(async () => {
@@ -1509,7 +2366,7 @@ function startSharedRoomCountdown(roomId) {
       roomCreatedAt > 0 &&
       (getSyncedServerNowMs() - roomCreatedAt > ROOM_MAX_WAITING_LIFETIME_MS)
     ) {
-      await cleanupInactivePlayers(roomId);
+      await scheduleRoomHostTasks(roomId, latestRoom, { force: true });
       return;
     }
 
@@ -1528,20 +2385,20 @@ function startSharedRoomCountdown(roomId) {
       return;
     }
 
-    await cleanupInactivePlayers(roomId);
+    await scheduleRoomHostTasks(roomId, latestRoom);
 
     const playersCount = Array.isArray(latestRoom.playerIds) ? latestRoom.playerIds.length : 0;
     const startAtMs = getRoomTimeMs(latestRoom.startAt);
 
     if (playersCount >= 3) {
-      await tryStartRoom(roomId);
+      await scheduleRoomHostTasks(roomId, latestRoom, { force: true });
       return;
     }
 
     if (playersCount >= 2 && startAtMs) {
       const leftSec = Math.max(0, 120 - Math.floor((getSyncedServerNowMs() - startAtMs) / 1000));
       if (leftSec <= 0) {
-        await tryStartRoom(roomId);
+        await scheduleRoomHostTasks(roomId, latestRoom, { force: true });
       }
     }
   }, 1000);
@@ -1589,7 +2446,7 @@ function startSharedRoomCountdown(roomId) {
     }
 
     if (room.gameState?.started) {
-      console.log("leaveRoom: игра уже началась, используй leaveAfterLoss");
+      
       return;
     }
 
@@ -1755,6 +2612,10 @@ function openSkins() {
   alert("Скины");
 }
 
+function openGuide() {
+  toggleHistoryPanel();
+}
+
 function openSettings() {
   let lang = prompt("Выбери язык: ru / en");
   if (lang === "en") {
@@ -1770,35 +2631,34 @@ function openSettings() {
 function initGame() {
 
   function fullResetMenu() {
-    // Полностью очищаем inline-стили
     document.body.removeAttribute("style");
-    
+
     const menu = document.getElementById("menu");
-    menu.removeAttribute("style");
-    
-    const topBar = document.querySelector(".top-bar");
-    if (topBar) topBar.removeAttribute("style");
-    
-    const mainDiv = document.querySelector(".main");
-    if (mainDiv) mainDiv.removeAttribute("style");
-    
-    const bottomBar = document.querySelector(".bottom-bar");
-    if (bottomBar) bottomBar.removeAttribute("style");
-    
-    const btns = document.querySelectorAll(".bottom-btn");
-    btns.forEach(btn => btn.removeAttribute("style"));
-    
-    // Восстанавливаем display
-    menu.style.display = "flex";
-    document.getElementById("game").style.display = "none";
-    
-    // Принудительно применяем CSS класс для восстановления
-    menu.classList.add("menu-reset");
-    
-    // Минимальная задержка (один кадр) - незаметно для пользователя
-    requestAnimationFrame(() => {
-      menu.classList.remove("menu-reset");
-    });
+    if (menu) {
+      menu.removeAttribute("style");
+      menu.style.display = "flex";
+      menu.classList.add("menu-reset");
+
+      requestAnimationFrame(() => {
+        menu.classList.remove("menu-reset");
+      });
+    }
+
+    const gameCanvas = document.getElementById("game");
+    if (gameCanvas) {
+      gameCanvas.style.display = "none";
+    }
+
+    forceCloseEndGameUI();
+    endGameShown = false;
+    isClosingEndGame = false;
+    endGameExitHandled = false;
+    openEndGameForCurrentMatch = null;
+    exitEndGameForCurrentMatch = null;
+    closeRooms();
+    setMenuView("mode");
+    latestGameRoomState = null;
+    loadGameHistory();
   }
 
   // Защита от повторного запуска
@@ -1884,6 +2744,10 @@ let firstObstacleResolved = false;
 let gameStarted = false;   // игра ещё не началась
 let startTimer = 3;        // таймер
 let showStartText = true;  // показывать ли START
+let latestGameRoomState = null;
+let simulationTick = 0;
+let lastTargetTick = 0;
+let lastCountdownSecond = null;
 
   // 🔹 Периодическое обновление данных игрока в Firebase
 let syncInterval = null;
@@ -1981,28 +2845,16 @@ window.addEventListener("beforeunload", gameBeforeUnloadHandler);
   showEndGameModal(resultData);
 };
 
-exitEndGameForCurrentMatch = async function() {
-  const roomId = currentRoomId;
+activeLeaveAfterLossHandler = leaveAfterLoss;
 
-  hideEndGameModal();
+exitEndGameForCurrentMatch = async function() {
+  forceCloseEndGameUI();
   stopEndGameWatcher();
   endGameShown = false;
-
-  try {
-    if (roomId) {
-      const roomRef = db.collection("rooms").doc(roomId);
-      const doc = await roomRef.get();
-
-      if (doc.exists) {
-        const room = doc.data();
-        if (room?.gameState?.finished) {
-          await roomRef.delete();
-        }
-      }
-    }
-  } catch (e) {
-    console.error("Ошибка удаления завершённой комнаты:", e);
-  }
+  isClosingEndGame = true;
+  endGameExitHandled = true;
+  openEndGameForCurrentMatch = null;
+  exitEndGameForCurrentMatch = null;
 
   await leaveAfterLoss();
 };
@@ -2293,30 +3145,12 @@ playerState.alive = !playerLost;
         if (!doc.exists) return;
 
         const room = doc.data();
-        const pendingFinish = room?.gameState?.pendingFinish;
         let finalScore = score;
 
-        // Если это тот самый последний прыжок после смерти второго игрока,
-        // победителю обязательно засчитываем +1 за это же бревно.
-        if (
-          pendingFinish?.active === true &&
-          pendingFinish.winnerId === playerId &&
-          pendingFinish.resolved !== true
-        ) {
-          const loserScore = Number(pendingFinish.loserScore || 0);
-          finalScore = Math.max(score, loserScore + 1);
-          score = finalScore;
-
-          await roomRef.update({
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            [`gameState.playersData.${playerId}.score`]: finalScore,
-            [`gameState.playersData.${playerId}.firstObstacleResolved`]: true,
-            "gameState.pendingFinish.resolved": true,
-            "gameState.pendingFinish.resolvedAt": Date.now(),
-            "gameState.pendingFinish.finalWinnerScore": finalScore
-          });
-
-          await checkWinner();
+        // Если это последний прыжок в дуэли 1v1,
+        // завершаем матч прямо здесь транзакцией, без ожидания отдельного checkWinner().
+        const duelResolved = await resolvePendingDuelFinishIfNeeded(roomRef, finalScore);
+        if (duelResolved) {
           return;
         }
 
@@ -2326,6 +3160,7 @@ playerState.alive = !playerLost;
           [`gameState.playersData.${playerId}.score`]: finalScore,
           [`gameState.playersData.${playerId}.firstObstacleResolved`]: true
         });
+        await checkWinner();
       }).catch(err => console.error("Ошибка обновления счёта:", err));
     }
   }
@@ -2461,11 +3296,21 @@ playerState.alive = !playerLost;
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
 
-    // Пока не получили ОБЩЕЕ серверное время старта,
-    // не показываем локальную "3", иначе у игроков визуально будет разный отсчёт.
+    // Пока не получили общее серверное время старта,
+    // показываем экран подготовки и ждём всех игроков.
     if (!syncedCountdownStartedAtMs) {
-      ctx.font = "bold 32px Arial";
-      ctx.fillText("Синхронизация...", canvas.width / 2, canvas.height / 2);
+      const playerIds = Array.isArray(latestGameRoomState?.playerIds)
+        ? latestGameRoomState.playerIds.filter(Boolean)
+        : [];
+      const playersReady = latestGameRoomState?.gameState?.playersReady || {};
+      const readyCount = playerIds.filter(pid => playersReady[pid] === true).length;
+      const totalCount = playerIds.length || 1;
+
+      ctx.font = "bold 34px Arial";
+      ctx.fillText("Загрузка игры...", canvas.width / 2, canvas.height / 2 - 16);
+
+      ctx.font = "24px Arial";
+      ctx.fillText(`Готово игроков: ${readyCount}/${totalCount}`, canvas.width / 2, canvas.height / 2 + 26);
       return;
     }
 
@@ -2530,7 +3375,8 @@ async function markPendingDuelFinish() {
           winnerId,
           loserId,
           loserScore,
-          resolved: false
+          resolved: false,
+          createdAt: Date.now()
         }
       });
     }
@@ -2538,15 +3384,135 @@ async function markPendingDuelFinish() {
     console.error("Ошибка markPendingDuelFinish:", e);
   }
 }
+async function resolvePendingDuelFinishIfNeeded(roomRef, fallbackFinalScore) {
+  if (!roomRef || !currentRoomId) return false;
+
+  let resolved = false;
+  let resolvedResultData = null;
+  let resolvedScore = Number(fallbackFinalScore || 0);
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const roomDoc = await transaction.get(roomRef);
+      if (!roomDoc.exists) return;
+
+      const room = roomDoc.data();
+      if (!room?.gameState?.playersData) return;
+      if (room.gameState.finished === true || room.status === "finished") return;
+
+      const playersData = room.gameState.playersData || {};
+      const pendingFinish = room.gameState.pendingFinish || null;
+
+      const alivePlayers = Object.entries(playersData).filter(([_, p]) => {
+        return p && p.alive === true && p.leftRoom !== true;
+      });
+
+      const loserPlayers = Object.entries(playersData).filter(([_, p]) => {
+        return p && p.lost === true && p.leftRoom !== true;
+      });
+
+      const canResolveExistingPending =
+        pendingFinish?.active === true &&
+        pendingFinish.winnerId === playerId &&
+        pendingFinish.resolved !== true;
+
+      const isFallbackDuelState =
+        alivePlayers.length === 1 &&
+        loserPlayers.length === 1 &&
+        alivePlayers[0][0] === playerId;
+
+      if (!canResolveExistingPending && !isFallbackDuelState) {
+        return;
+      }
+
+      const loserEntry = canResolveExistingPending
+        ? loserPlayers.find(([pid]) => pid === pendingFinish.loserId) || loserPlayers[0]
+        : loserPlayers[0];
+
+      const loserId = loserEntry?.[0] || (canResolveExistingPending ? pendingFinish.loserId : null);
+      const loserData = loserEntry?.[1] || {};
+      const loserScore = canResolveExistingPending
+        ? Number(pendingFinish.loserScore || loserData.score || 0)
+        : Number(loserData.score || 0);
+
+      const winnerData = playersData[playerId] || {};
+      const winnerName = winnerData.name || room.playerNames?.[playerId] || name;
+      const loserName = loserData.name || room.playerNames?.[loserId] || "Игрок";
+
+      const finalScore = Math.max(Number(fallbackFinalScore || 0), loserScore + 1);
+      resolvedScore = finalScore;
+      score = finalScore;
+
+      const finalResults = [
+        {
+          place: 1,
+          name: winnerName,
+          score: finalScore
+        },
+        {
+          place: 2,
+          name: loserName,
+          score: loserScore
+        }
+      ];
+
+      transaction.update(roomRef, {
+        status: "finished",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        "gameState.finished": true,
+        "gameState.started": false,
+        "gameState.winner": winnerName,
+        "gameState.results": finalResults,
+        [`gameState.playersData.${playerId}.score`]: finalScore,
+        [`gameState.playersData.${playerId}.firstObstacleResolved`]: true,
+        "gameState.pendingFinish": {
+          active: true,
+          winnerId: playerId,
+          loserId,
+          loserScore,
+          resolved: true,
+          resolvedAt: Date.now(),
+          finalWinnerScore: finalScore
+        }
+      });
+
+      resolved = true;
+      resolvedResultData = {
+        winner: winnerName,
+        results: finalResults
+      };
+    });
+  } catch (e) {
+    console.error("Ошибка resolvePendingDuelFinishIfNeeded:", e);
+    return false;
+  }
+
+  if (!resolved) {
+    return false;
+  }
+
+  winnerProcessing = true;
+  await saveBestScore(resolvedScore);
+
+  if (resolvedResultData && !endGameShown) {
+    try {
+      const finishedDoc = await roomRef.get();
+      if (finishedDoc.exists) {
+        await ensureCurrentMatchHistorySaved(currentRoomId, finishedDoc.data());
+      }
+    } catch (e) {
+      console.error("Ошибка финального сохранения истории:", e);
+    }
+
+    showEndGameModal(resolvedResultData);
+  }
+
+  return true;
+}
+
 
 function buildDrawResultIfNeeded(allLosersSorted, roomData, pendingFinish) {
   if (!Array.isArray(allLosersSorted) || allLosersSorted.length < 2) {
-    return null;
-  }
-
-  // если pendingFinish завершён с finalWinnerScore,
-  // значит кто-то реально перепрыгнул последнее бревно — это НЕ ничья
-  if (pendingFinish?.finalWinnerScore != null) {
     return null;
   }
 
@@ -2557,9 +3523,20 @@ function buildDrawResultIfNeeded(allLosersSorted, roomData, pendingFinish) {
 
   const firstScore = Number(first[1]?.score || 0);
   const secondScore = Number(second[1]?.score || 0);
+  const firstLostAt = Number(first[1]?.lostAt || 0);
+  const secondLostAt = Number(second[1]?.lostAt || 0);
+  const lostAtDiffMs = Math.abs(firstLostAt - secondLostAt);
+  const isSimultaneousCrash = firstLostAt > 0 && secondLostAt > 0 && lostAtDiffMs <= 1200;
 
   // ничья только если у двух последних одинаковый счёт
   if (firstScore !== secondScore) {
+    return null;
+  }
+
+  // Если pendingFinish уже успел записать временного победителя,
+  // но оба игрока умерли почти одновременно и со счётом вровень,
+  // это всё равно ничья.
+  if (pendingFinish?.finalWinnerScore != null && !isSimultaneousCrash) {
     return null;
   }
 
@@ -2591,118 +3568,113 @@ function buildDrawResultIfNeeded(allLosersSorted, roomData, pendingFinish) {
 }
   
 async function leaveAfterLoss() {
+  if (leaveAfterLossInProgress) return;
+  leaveAfterLossInProgress = true;
+
+  activeLeaveAfterLossHandler = leaveAfterLoss;
   stopRoomReadyPoll();
   hideEndGameModal();
   stopEndGameWatcher();
   endGameShown = false;
-  
-    if (!currentRoomId) {
-  clearInterval(spawnInterval1);
-  clearInterval(spawnInterval2);
-  clearInterval(spawnInterval3);
-  spawnInterval1 = null;
-  spawnInterval2 = null;
-  spawnInterval3 = null;
-  spawnStarted = false;
 
-  if (syncInterval) clearInterval(syncInterval);
-  stopRoomPresence();
-  stopGameCountdownStartListener();
-  window.gameInitialized = false;
-  fullResetMenu();
-  loadRooms();
-  return;
-}
-
-  const roomRef = db.collection("rooms").doc(currentRoomId);
-
-  try {
-    const doc = await roomRef.get();
-
-    if (doc.exists) {
-  const room = doc.data();
-
-  const newPlayers = Array.isArray(room.playerIds)
-    ? room.playerIds.filter(pid => pid !== playerId)
-    : [];
-
-  if (newPlayers.length === 0) {
-    await roomRef.delete();
-  } else {
-    const newPlayerNames = { ...(room.playerNames || {}) };
-    delete newPlayerNames[playerId];
-
-    const updateData = {
-  playerIds: newPlayers,
-  playerNames: newPlayerNames,
-  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-  [`gameState.playersData.${playerId}.leftRoom`]: true,
-  [`gameState.playersReady.${playerId}`]: firebase.firestore.FieldValue.delete()
-};
-
-    if (newPlayers.length < 2) {
-      updateData.startAt = null;
-    }
-
-    await roomRef.update(updateData);
-  }
-}
-  } catch (e) {
-    console.error("Ошибка выхода после поражения:", e);
-  }
+  const exitingRoomId = currentRoomId;
+  const exitingPlayerId = playerId;
 
   currentRoomId = null;
   resetServerClockSync();
 
-if (currentRoomListener) {
-  currentRoomListener();
-  currentRoomListener = null;
-}
+  if (currentRoomListener) {
+    currentRoomListener();
+    currentRoomListener = null;
+  }
 
-stopRoomCountdown();
-stopRoomPresence();
-stopGameCountdownStartListener();
-multiplayerGameStarted = false;
-  
-clearInterval(spawnInterval1);
-clearInterval(spawnInterval2);
-clearInterval(spawnInterval3);
-spawnInterval1 = null;
-spawnInterval2 = null;
-spawnInterval3 = null;
-spawnStarted = false;
+  stopRoomCountdown();
+  stopRoomPresence();
+  stopGameCountdownStartListener();
+  multiplayerGameStarted = false;
+  resetSpawnState();
 
-if (syncInterval) clearInterval(syncInterval);
-if (winnerCheckInterval) clearInterval(winnerCheckInterval);
+  if (syncInterval) clearInterval(syncInterval);
+  if (winnerCheckInterval) clearInterval(winnerCheckInterval);
 
-window.gameInitialized = false;
-showExitButton = false;
-openEndGameForCurrentMatch = null;
-exitEndGameForCurrentMatch = null;
+  window.gameInitialized = false;
+  activeLeaveAfterLossHandler = null;
+  showExitButton = false;
+  forceCloseEndGameUI();
+  endGameShown = false;
+  isClosingEndGame = false;
+  endGameExitHandled = false;
+  openEndGameForCurrentMatch = null;
+  exitEndGameForCurrentMatch = null;
 
-if (gameResizeHandler) {
-  window.removeEventListener("resize", gameResizeHandler);
-  gameResizeHandler = null;
-}
+  if (gameResizeHandler) {
+    window.removeEventListener("resize", gameResizeHandler);
+    gameResizeHandler = null;
+  }
 
-if (gameBeforeUnloadHandler) {
-  window.removeEventListener("beforeunload", gameBeforeUnloadHandler);
-  gameBeforeUnloadHandler = null;
-}
+  if (gameBeforeUnloadHandler) {
+    window.removeEventListener("beforeunload", gameBeforeUnloadHandler);
+    gameBeforeUnloadHandler = null;
+  }
 
-if (gameCanvasClickHandler) {
-  canvas.removeEventListener("click", gameCanvasClickHandler);
-  gameCanvasClickHandler = null;
-}
+  if (gameCanvasClickHandler) {
+    canvas.removeEventListener("click", gameCanvasClickHandler);
+    gameCanvasClickHandler = null;
+  }
 
-if (gameCanvasTouchHandler) {
-  canvas.removeEventListener("touchstart", gameCanvasTouchHandler);
-  gameCanvasTouchHandler = null;
-}
+  if (gameCanvasTouchHandler) {
+    canvas.removeEventListener("touchstart", gameCanvasTouchHandler);
+    gameCanvasTouchHandler = null;
+  }
 
-fullResetMenu();
-document.getElementById("createRoomBtn").style.display = "block";
-loadRooms();
+  fullResetMenu();
+  document.getElementById("createRoomBtn").style.display = "block";
+  loadRooms();
+
+  if (!exitingRoomId) {
+    leaveAfterLossInProgress = false;
+    return;
+  }
+
+  (async () => {
+    const roomRef = db.collection("rooms").doc(exitingRoomId);
+
+    try {
+      const doc = await roomRef.get();
+      if (!doc.exists) return;
+
+      const room = doc.data();
+      const newPlayers = Array.isArray(room.playerIds)
+        ? room.playerIds.filter(pid => pid !== exitingPlayerId)
+        : [];
+
+      if (newPlayers.length === 0) {
+        await roomRef.delete();
+        return;
+      }
+
+      const newPlayerNames = { ...(room.playerNames || {}) };
+      delete newPlayerNames[exitingPlayerId];
+
+      const updateData = {
+        playerIds: newPlayers,
+        playerNames: newPlayerNames,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        [`gameState.playersData.${exitingPlayerId}.leftRoom`]: true,
+        [`gameState.playersReady.${exitingPlayerId}`]: firebase.firestore.FieldValue.delete()
+      };
+
+      if (newPlayers.length < 2) {
+        updateData.startAt = null;
+      }
+
+      await roomRef.update(updateData);
+    } catch (e) {
+      console.error("Ошибка выхода после поражения:", e);
+    }
+  })();
+
+  leaveAfterLossInProgress = false;
 }
 
 async function checkWinner() {
@@ -2739,24 +3711,30 @@ const allLosersSorted = Object.entries(playersData)
 
   const loserEntries = allLosersSorted.filter(([pid]) => pid !== winnerId);
 
-  // Если это особый случай 1v1, ждём, пока победитель реально перепрыгнет последнее бревно
+  let winnerScore = winnerId === playerId ? Number(score || 0) : Number(winnerData.score || 0);
+
+  // Особый случай 1v1: если pendingFinish уже создан,
+  // но победный прыжок записался обычным update раньше, чем сработал resolvePendingDuelFinishIfNeeded,
+  // не ждём бесконечно старый сценарий, а завершаем матч как только счёт живого игрока стал больше счёта проигравшего.
   if (
     pendingFinish &&
     pendingFinish.active === true &&
     pendingFinish.winnerId === winnerId
   ) {
-    if (pendingFinish.resolved !== true) {
+    const loserScore = Number(pendingFinish.loserScore || 0);
+
+    if (pendingFinish.finalWinnerScore != null) {
+      winnerScore = Number(pendingFinish.finalWinnerScore);
+    } else if (pendingFinish.resolved === true) {
+      winnerScore = Math.max(winnerScore, loserScore + 1);
+    } else if (winnerScore > loserScore) {
+      winnerScore = Math.max(winnerScore, loserScore + 1);
+    } else {
       return;
     }
   }
 
   winnerProcessing = true;
-
-  // Для окна победителя берём финальный счёт матча
-  const winnerScore =
-    pendingFinish?.finalWinnerScore != null
-      ? Number(pendingFinish.finalWinnerScore)
-      : (winnerId === playerId ? score : Number(winnerData.score || 0));
 
   // А вот leaderboard в главном меню обновляем только как рекорд
   if (winnerId === playerId) {
@@ -2797,6 +3775,17 @@ const allLosersSorted = Object.entries(playersData)
   [`gameState.playersData.${winnerId}.score`]: winnerScore
 });
 
+      await ensureCurrentMatchHistorySaved(currentRoomId, {
+        ...roomData,
+        status: "finished",
+        gameState: {
+          ...(roomData.gameState || {}),
+          finished: true,
+          winner: winnerName,
+          results: finalResults
+        }
+      });
+
       showEndGameModal({
         winner: winnerName,
         results: finalResults
@@ -2830,6 +3819,17 @@ const allLosersSorted = Object.entries(playersData)
       "gameState.winner": drawResult.winnerLabel,
       "gameState.results": drawResult.results,
       "gameState.pendingFinish": firebase.firestore.FieldValue.delete()
+    });
+
+    await ensureCurrentMatchHistorySaved(currentRoomId, {
+      ...roomData,
+      status: "finished",
+      gameState: {
+        ...(roomData.gameState || {}),
+        finished: true,
+        winner: drawResult.winnerLabel,
+        results: drawResult.results
+      }
     });
 
     showEndGameModal({
@@ -2888,6 +3888,17 @@ const allLosersSorted = Object.entries(playersData)
     [`gameState.playersData.${winnerId}.score`]: winnerScore
   });
 
+  await ensureCurrentMatchHistorySaved(currentRoomId, {
+    ...roomData,
+    status: "finished",
+    gameState: {
+      ...(roomData.gameState || {}),
+      finished: true,
+      winner: winnerName,
+      results: finalResults
+    }
+  });
+
   showEndGameModal({
     winner: winnerName,
     results: finalResults
@@ -2940,26 +3951,72 @@ if (!endGameShown) {
   }
 
   
-// Запуск спавна препятствий
-let spawnInterval1 = null;
-let spawnInterval2 = null;
-let spawnInterval3 = null;
-
+// Общая синхронная симуляция препятствий
 let syncedCountdownStartedAtMs = null;
 let spawnStarted = false;
+let spawnAccumulator1 = 0;
+let spawnAccumulator2 = 0;
+let spawnAccumulator3 = 0;
+const FIXED_STEP_MS = 1000 / 120;
+const LANE1_SPAWN_MS = 1200;
+const LANE2_SPAWN_MS = 1500;
+const LANE3_SPAWN_MS = 1800;
+
+function resetSpawnState() {
+  spawnStarted = false;
+  spawnAccumulator1 = 0;
+  spawnAccumulator2 = 0;
+  spawnAccumulator3 = 0;
+}
 
 function startSpawnIfNeeded() {
   if (spawnStarted) return;
   spawnStarted = true;
 
-  // первое бревно создаём сразу после старта игры
+  spawnAccumulator1 = 0;
+  spawnAccumulator2 = 0;
+  spawnAccumulator3 = 0;
+
   spawnObstacle1();
   spawnObstacle2();
   spawnObstacle3();
+}
 
-  spawnInterval1 = setInterval(spawnObstacle1, 1200);
-  spawnInterval2 = setInterval(spawnObstacle2, 1500);
-  spawnInterval3 = setInterval(spawnObstacle3, 1800);
+function stepSimulation() {
+  deltaTime = FIXED_STEP_MS / 16.67;
+
+  updatePlayer();
+  updateObstacles1();
+  updateObstacles2();
+  updateObstacles3();
+
+  if (gameStarted) {
+    gameSpeed += 0.00001;
+
+    if (!isWatching1) {
+      spawnAccumulator1 += FIXED_STEP_MS;
+      while (spawnAccumulator1 >= LANE1_SPAWN_MS) {
+        spawnAccumulator1 -= LANE1_SPAWN_MS;
+        spawnObstacle1();
+      }
+    }
+
+    if (!isWatching2) {
+      spawnAccumulator2 += FIXED_STEP_MS;
+      while (spawnAccumulator2 >= LANE2_SPAWN_MS) {
+        spawnAccumulator2 -= LANE2_SPAWN_MS;
+        spawnObstacle2();
+      }
+    }
+
+    if (!isWatching3) {
+      spawnAccumulator3 += FIXED_STEP_MS;
+      while (spawnAccumulator3 >= LANE3_SPAWN_MS) {
+        spawnAccumulator3 -= LANE3_SPAWN_MS;
+        spawnObstacle3();
+      }
+    }
+  }
 }
 
 async function startGameFlow() {
@@ -2967,12 +4024,19 @@ async function startGameFlow() {
   startTimer = 3;
   showStartText = true;
   gameStarted = false;
+  simulationTick = 0;
+  lastTargetTick = 0;
+  lastCountdownSecond = null;
+  resetSpawnState();
 
-  // Не ждём загрузку картинок перед показом общего таймера старта.
-  // Иначе один игрок уже видит отсчёт, а второй ещё несколько секунд смотрит на загрузку.
-  prepareGameAssets();
-
+  lastTime = performance.now();
   requestAnimationFrame(loop);
+
+  try {
+    await prepareGameAssets();
+  } catch (e) {
+    console.error("Ошибка загрузки ассетов:", e);
+  }
 
   await markPlayerReadyForGame(currentRoomId);
 
@@ -2990,6 +4054,7 @@ async function startGameFlow() {
       const room = doc.data();
       if (!room) return;
 
+      latestGameRoomState = room;
       syncServerClockFromRoom(room);
 
       const countdownStartedAt = getRoomTimeMs(room.gameState?.countdownStartedAt);
@@ -3018,6 +4083,7 @@ async function startGameFlow() {
       const room = doc.data();
       if (!room) return;
 
+      latestGameRoomState = room;
       syncServerClockFromRoom(room);
 
       const countdownStartedAt = getRoomTimeMs(room.gameState?.countdownStartedAt);
@@ -3037,35 +4103,60 @@ async function startGameFlow() {
 }
 
 loop = function(currentTime) {
-  deltaTime = (currentTime - lastTime) / 16.67;
-  deltaTime = Math.min(2, Math.max(0.5, deltaTime));
+  const frameDeltaMs = Math.min(32, Math.max(0, currentTime - lastTime));
   lastTime = currentTime;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (syncedCountdownStartedAtMs) {
     const nowMs = getSyncedServerNowMs();
-    const countdownElapsedMs = nowMs - syncedCountdownStartedAtMs;
+    const countdownElapsedMs = nowMs - (syncedCountdownStartedAtMs + GAME_READY_BUFFER_MS);
 
-    if (countdownElapsedMs < 3000) {
-      startTimer = 3 - Math.floor(countdownElapsedMs / 1000);
+    if (countdownElapsedMs < 0) {
+      startTimer = 3;
       showStartText = true;
       gameStarted = false;
-    } else if (!gameStarted) {
-      frozenObstacle = null;
-      obstacles1 = [];
-      obstacles2 = [];
-      obstacles3 = [];
-      gameStarted = true;
-      showStartText = false;
-      startSpawnIfNeeded();
+    } else if (countdownElapsedMs < 3000) {
+      const currentSecond = Math.max(0, 3 - Math.floor(countdownElapsedMs / 1000));
+      if (lastCountdownSecond !== currentSecond) {
+        lastCountdownSecond = currentSecond;
+      }
+
+      startTimer = currentSecond;
+      showStartText = true;
+      gameStarted = false;
+    } else {
+      if (!gameStarted) {
+        frozenObstacle = null;
+        obstacles1 = [];
+        obstacles2 = [];
+        obstacles3 = [];
+        gameStarted = true;
+        showStartText = false;
+        simulationTick = 0;
+        lastTargetTick = 0;
+        resetSpawnState();
+        startSpawnIfNeeded();
+      }
+
+      const gameElapsedMs = nowMs - (syncedCountdownStartedAtMs + GAME_READY_BUFFER_MS + 3000);
+      const targetTick = Math.max(0, Math.floor(gameElapsedMs / FIXED_STEP_MS));
+      let ticksToSimulate = Math.max(0, targetTick - lastTargetTick);
+
+      if (ticksToSimulate > 0) {
+        const hardCap = Math.max(1, Math.ceil(frameDeltaMs / FIXED_STEP_MS) + 8);
+        ticksToSimulate = Math.min(ticksToSimulate, hardCap);
+      }
+
+      for (let i = 0; i < ticksToSimulate; i++) {
+        simulationTick++;
+        stepSimulation();
+      }
+
+      lastTargetTick += ticksToSimulate;
     }
   }
 
   drawRoad();
-  updatePlayer();
-  updateObstacles1();
-  updateObstacles2();
-  updateObstacles3();
   drawObstacles1();
   drawObstacles2();
   drawObstacles3();
@@ -3088,15 +4179,29 @@ loop = function(currentTime) {
     drawExitButton();
   }
 
-  if (gameStarted) {
-    gameSpeed += 0.00001 * deltaTime;
-  }
-
   requestAnimationFrame(loop);
 };
 
 startGameFlow();
 }
+
+window.toggleModePopup = toggleModePopup;
+window.enterBobrRunMode = enterBobrRunMode;
+window.exitGameMode = exitGameMode;
+window.openLeaderboard = openLeaderboard;
+window.closeLeaderboard = closeLeaderboard;
+window.openRooms = openRooms;
+window.closeRooms = closeRooms;
+window.createRoom = createRoom;
+window.joinRoom = joinRoom;
+window.leaveRoom = leaveRoom;
+window.openSkins = openSkins;
+window.openSettings = openSettings;
+window.toggleHistoryPanel = toggleHistoryPanel;
+window.toggleHistoryGameDetails = toggleHistoryGameDetails;
+window.toggleHistoryMatchDetails = toggleHistoryMatchDetails;
+window.closeEndGameAndExit = closeEndGameAndExit;
+
 </script>
 
 
